@@ -1,15 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Cliente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
 <div class="card">
   <h1>📝 Registro de Cliente</h1>
-  <div class="subtitle">Uso exclusivo RRPP / Administración</div>
+  <p class="subtitle">Uso exclusivo RRPP / Administración</p>
 
-  <!-- FORM REAL -->
   <form id="formRegistro">
-
     <label>Nombre completo</label>
-    <input id="nombre" placeholder="Ej: Juan Pérez" required>
+    <input id="nombre" required placeholder="Ej: Juan Pérez">
 
     <label>Documento / ID</label>
-    <input id="documento" placeholder="DNI / Cédula / Militar" required>
+    <input id="documento" required placeholder="DNI / Cédula">
 
     <label>Tipo de cliente</label>
     <select id="tipo" required>
@@ -21,7 +30,6 @@
     </select>
 
     <button type="submit">Registrar cliente</button>
-
   </form>
 
   <div id="mensaje" class="msg"></div>
@@ -31,5 +39,6 @@
   </div>
 </div>
 
-<!-- JS externo -->
-<script src="/js/register.js"></script>
+<script src="js/register.js"></script>
+</body>
+</html>

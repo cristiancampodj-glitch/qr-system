@@ -1,191 +1,92 @@
-/* ===============================
-   RESET BÁSICO
-================================ */
-* {
-  box-sizing: border-box;
+:root {
+  --bg: #0b0b0e;
+  --card: #15151c;
+  --primary: #7b2cff;
+  --primary-soft: #a855f7;
+  --text: #ffffff;
+  --muted: #9ca3af;
 }
 
-html, body {
+body {
   margin: 0;
-  padding: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1a1a1a, #000);
   font-family: Arial, Helvetica, sans-serif;
-  background: #000;
-  color: #fff;
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* ===============================
-   TEXTO
-================================ */
-h1, h2, h3 {
-  margin: 0;
-  font-weight: bold;
-}
-
-p {
-  margin: 0;
-}
-
-.sub {
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-/* ===============================
-   CONTENEDORES
-================================ */
-.container,
-.card,
-.pantalla {
-  background: #121212;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.6);
-}
-
-/* ===============================
-   INPUTS & SELECT
-================================ */
-input,
-select {
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 26px;
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-  background: #1f1f1f;
-  color: white;
-  font-size: 14px;
-  margin-top: 6px;
-  margin-bottom: 14px;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.6);
+  animation: fadeUp .4s ease;
 }
 
-input::placeholder {
-  color: #999;
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===============================
-   BOTONES
-================================ */
-button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  color: white;
-  background: linear-gradient(135deg, #7b2cff, #a855f7);
-  transition: opacity 0.2s ease;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ===============================
-   QR
-================================ */
-#qr {
-  margin: 20px auto;
-  width: 220px;
-  height: 220px;
-  background: white;
-  padding: 10px;
-  border-radius: 12px;
-}
-
-/* ===============================
-   RESULTADOS (SEGURIDAD / BARRA)
-================================ */
-.estado {
-  margin-top: 15px;
-  padding: 20px;
-  border-radius: 14px;
-  font-size: 18px;
-  font-weight: bold;
+h1 {
   text-align: center;
-}
-
-.estado.ok {
-  background: #064e3b;
-  color: #34d399;
-}
-
-.estado.error {
-  background: #7f1d1d;
-  color: #fecaca;
-}
-
-/* ===============================
-   PERFIL / INFO
-================================ */
-.perfil {
-  font-size: 22px;
-  font-weight: bold;
   margin-bottom: 6px;
 }
 
-.detalle {
-  font-size: 14px;
-  opacity: 0.85;
-}
-
-/* ===============================
-   UTILIDADES
-================================ */
-.oculto {
-  display: none;
-}
-
-.center {
+.subtitle {
   text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
 }
 
-.mt {
-  margin-top: 15px;
-}
-
-.mb {
-  margin-bottom: 15px;
-}
-
-/* ===============================
-   FOOTER / LINKS
-================================ */
-.footer,
-.back {
-  text-align: center;
+label {
   font-size: 12px;
-  opacity: 0.6;
-  margin-top: 20px;
+  color: var(--muted);
+}
+
+input, select {
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #1f1f1f;
+  color: white;
+  font-size: 14px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary), var(--primary-soft));
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.back:hover {
-  opacity: 1;
+.msg {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 14px;
 }
 
-/* ===============================
-   RESPONSIVE
-================================ */
-@media (max-width: 480px) {
-  .container,
-  .card,
-  .pantalla {
-    padding: 16px;
-    border-radius: 12px;
-  }
+.ok { color: #4ade80; }
+.error { color: #f87171; }
 
-  h1 {
-    font-size: 20px;
-  }
-
-  .perfil {
-    font-size: 20px;
-  }
+.back {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
 }
