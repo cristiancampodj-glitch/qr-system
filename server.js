@@ -1,216 +1,132 @@
 const express = require("express");
 const crypto = require("crypto");
-const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 app.use(express.static("public"));
 
 /* ===============================
-   CONFIGURACIÓN
+   CONFIG
 ================================ */
 const SECRET_KEY = "CLAVE_SUPER_SECRETA_NO_COMPARTIR";
 const QR_EXPIRATION_SECONDS = 20;
-const ENTRADAS_FILE = path.join(__dirname, "entradas.json");
 
-/* ===============================
-   USUARIOS (DEMO)
-================================ */
-const USERS = {
-  militar_001: {
-    perfil: "MILITAR",
-    descuento: "15%"
-  },
-  universitario_001: {
-    perfil: "UNIVERSITARIO",
-    descuento: "10%"
-  },
-  vip_001: {
-    perfil: "VIP",
-    descuento: "30%"
-  },
-  staff_001: {
-    perfil: "STAFF",
-    descuento: "ACCESO LIBRE"
-  }
-};
-
-/* ===============================
-   UTILIDADES JSON
-================================ */
-function leerEntradas() {
-  if (!fs.existsSync(ENTRADAS_FILE)) {
-    fs.writeFileSync(ENTRADAS_FILE, JSON.stringify({}, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(ENTRADAS_FILE));
-}
-
-function guardarEntradas(data) {
-  fs.writeFileSync(ENTRADAS_FILE, JSON.stringify(data, null, 2));
-}
+const DATA = (file) => path.join(__dirname, "data", file);
+const readJSON = (file) => JSON.parse(fs.readFileSync(DATA(file)));
+const writeJSON = (file, data) =>
+  fs.writeFileSync(DATA(file), JSON.stringify(data, null, 2));
 
 /* ===============================
    TOKEN
 ================================ */
-function generarToken(userId) {
-  const timestamp = Math.floor(Date.now() / 1000);
-  const data = `${userId}.${timestamp}`;
-
+function generarToken(id) {
+  const ts = Math.floor(Date.now() / 1000);
+  const base = `${id}.${ts}`;
   const firma = crypto
     .createHmac("sha256", SECRET_KEY)
-    .update(data)
+    .update(base)
     .digest("hex");
-
-  return Buffer.from(`${data}.${firma}`).toString("base64");
+  return Buffer.from(`${base}.${firma}`).toString("base64");
 }
 
-/* ===============================
-   API: GENERAR TOKEN
-================================ */
-app.get("/api/token/:userId", (req, res) => {
-  const { userId } = req.params;
-
-  if (!USERS[userId]) {
-    return res.status(404).json({ error: "Usuario no existe" });
-  }
-
-  res.json({ token: generarToken(userId) });
-});
-
-/* ===============================
-   VALIDACIÓN BASE (COMÚN)
-================================ */
 function validarToken(token) {
-  const decoded = Buffer.from(token, "base64").toString("utf8");
-  const [userId, timestamp, firma] = decoded.split(".");
+  try {
+    const raw = Buffer.from(token, "base64").toString("utf8");
+    const [id, ts, firma] = raw.split(".");
+    if (!id || !ts || !firma) return null;
 
-  if (!userId || !timestamp || !firma) {
-    return { valido: false, motivo: "Token malformado" };
+    if (Date.now() / 1000 - ts > QR_EXPIRATION_SECONDS) return null;
+
+    const check = crypto
+      .createHmac("sha256", SECRET_KEY)
+      .update(`${id}.${ts}`)
+      .digest("hex");
+
+    return firma === check ? id : null;
+  } catch {
+    return null;
   }
-
-  const ahora = Math.floor(Date.now() / 1000);
-  if (ahora - timestamp > QR_EXPIRATION_SECONDS) {
-    return { valido: false, motivo: "QR caducado" };
-  }
-
-  const data = `${userId}.${timestamp}`;
-  const firmaEsperada = crypto
-    .createHmac("sha256", SECRET_KEY)
-    .update(data)
-    .digest("hex");
-
-  if (firma !== firmaEsperada) {
-    return { valido: false, motivo: "QR inválido" };
-  }
-
-  const user = USERS[userId];
-  if (!user) {
-    return { valido: false, motivo: "Usuario no autorizado" };
-  }
-
-  return { valido: true, userId, user };
 }
 
 /* ===============================
-   ENTRADA / SEGURIDAD
+   REGISTRO (RRPP)
 ================================ */
-app.get("/api/validar/entrada", (req, res) => {
-  const { token } = req.query;
-  const resultado = validarToken(token);
+app.post("/api/register", (req, res) => {
+  const clientes = readJSON("clientes.json");
+  const id = "cli_" + Date.now();
 
-  if (!resultado.valido) return res.json(resultado);
-
-  const entradas = leerEntradas();
-
-  if (entradas[resultado.userId]?.entro) {
-    return res.json({
-      valido: false,
-      motivo: "Usuario ya ingresó"
-    });
-  }
-
-  entradas[resultado.userId] = {
-    entro: true,
-    hora: new Date().toISOString()
+  clientes[id] = {
+    id,
+    nombre: req.body.nombre,
+    perfil: req.body.perfil,
+    puntos: 0
   };
 
-  guardarEntradas(entradas);
-
-  res.json({
-    valido: true,
-    accion: "ENTRADA PERMITIDA",
-    perfil: resultado.user.perfil
-  });
+  writeJSON("clientes.json", clientes);
+  res.json({ ok: true, id });
 });
 
 /* ===============================
-   BARRA / DESCUENTOS
+   CLIENTE
 ================================ */
-app.get("/api/validar/barra", (req, res) => {
-  const { token } = req.query;
-  const resultado = validarToken(token);
+app.get("/api/cliente/:id", (req, res) => {
+  const clientes = readJSON("clientes.json");
+  res.json(clientes[req.params.id]);
+});
 
-  if (!resultado.valido) return res.json(resultado);
+app.get("/api/token/:id", (req, res) => {
+  res.json({ token: generarToken(req.params.id) });
+});
 
-  const entradas = leerEntradas();
+/* ===============================
+   SEGURIDAD (ENTRADA)
+================================ */
+app.get("/api/entrada", (req, res) => {
+  const id = validarToken(req.query.token);
+  if (!id) return res.json({ ok: false });
 
-  if (!entradas[resultado.userId]?.entro) {
-    return res.json({
-      valido: false,
-      motivo: "Debe ingresar primero"
-    });
+  const entradas = readJSON("entradas.json");
+  if (entradas[id]) {
+    return res.json({ ok: false, motivo: "YA INGRESÓ" });
   }
 
+  entradas[id] = new Date().toISOString();
+  writeJSON("entradas.json", entradas);
+
+  res.json({ ok: true });
+});
+
+/* ===============================
+   BARRA
+================================ */
+app.get("/api/barra", (req, res) => {
+  const id = validarToken(req.query.token);
+  if (!id) return res.json({ ok: false });
+
+  const entradas = readJSON("entradas.json");
+  if (!entradas[id]) {
+    return res.json({ ok: false, motivo: "NO HA INGRESADO" });
+  }
+
+  const clientes = readJSON("clientes.json");
+  clientes[id].puntos += 5;
+  writeJSON("clientes.json", clientes);
+
   res.json({
-    valido: true,
-    perfil: resultado.user.perfil,
-    descuento: resultado.user.descuento
+    ok: true,
+    perfil: clientes[id].perfil,
+    puntos: clientes[id].puntos
   });
 });
 
 /* ===============================
-   PERFIL USUARIO (QR)
-================================ */
-app.get("/u/:userId", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/user.html"));
-});
-
-/* ===============================
-   SERVIDOR
+   SERVER
 ================================ */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor activo en puerto ${PORT}`);
-});
-// ===== CLIENTE (DATOS DE PRUEBA) =====
-app.get("/api/cliente/:id", (req, res) => {
-  res.json({
-    nombre: "Juan Pérez",
-    tipo: "MILITAR",
-    entro: true,
-    puntos: 325
-  });
-});
-
-// ===== QR DINÁMICO DE PRUEBA =====
-app.get("/api/cliente/:id/qr", (req, res) => {
-  const token = "TOKEN_REAL_" + Date.now();
-  res.json({ token });
-});
-// ===== VALIDAR ENTRADA (PRUEBA) =====
-app.get("/api/entrada", (req, res) => {
-  const { token } = req.query;
-
-  if (!token) {
-    return res.json({ valido: false, motivo: "Sin QR" });
-  }
-
-  // simulamos validación correcta
-  res.json({
-    valido: true,
-    mensaje: "ENTRADA PERMITIDA",
-    tipo: "MILITAR"
-  });
-});
+app.listen(PORT, () =>
+  console.log("Servidor activo en puerto " + PORT)
+);

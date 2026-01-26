@@ -1,60 +1,116 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Panel de Accesos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>QR System – Control Discoteca</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
       margin: 0;
-      background: #000;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1a1a1a, #000);
+      font-family: Arial, Helvetica, sans-serif;
       color: white;
-      font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
     }
 
-    .panel {
+    .container {
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       padding: 20px;
-      text-align: center;
     }
 
     h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.7;
       margin-bottom: 30px;
     }
 
-    a {
-      display: block;
-      margin: 12px 0;
+    .card {
+      background: #121212;
+      border-radius: 14px;
       padding: 18px;
-      background: #111;
-      border-radius: 12px;
-      text-decoration: none;
-      color: white;
-      font-size: 20px;
-      border: 2px solid #222;
+      margin-bottom: 15px;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
     }
 
-    a:hover {
-      background: #6a00ff;
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,.6);
+    }
+
+    .card h2 {
+      margin: 0 0 5px 0;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 13px;
+      opacity: .7;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      opacity: .4;
+      margin-top: 30px;
     }
   </style>
 </head>
+
 <body>
 
-<div class="panel">
-  <h1>🎧 SISTEMA DE ACCESOS</h1>
+  <div class="container">
+    <h1>🎧 QR SYSTEM</h1>
+    <div class="subtitle">Control de accesos · Barra · Clientes</div>
 
-  <a href="/cliente.html">👤 Cliente</a>
-  <a href="/validar-entrada.html">👮 Seguridad</a>
-  <a href="/barra.html">🍸 Barra</a>
-  <a href="/registro.html">🧑‍💼 Registro</a>
-</div>
+    <!-- RRPP / REGISTRO -->
+    <div class="card" onclick="ir('register.html')">
+      <h2>📝 Registro de Clientes</h2>
+      <p>RRPP – alta de militares, universitarios, VIP y staff</p>
+    </div>
+
+    <!-- SEGURIDAD -->
+    <div class="card" onclick="ir('validar-entrada.html')">
+      <h2>🛂 Control de Entrada</h2>
+      <p>Seguridad – escaneo QR para acceso</p>
+    </div>
+
+    <!-- BARRA -->
+    <div class="card" onclick="ir('validar-barra.html')">
+      <h2>🍸 Barra / Descuentos</h2>
+      <p>Aplicar descuentos y sumar puntos</p>
+    </div>
+
+    <!-- CLIENTE -->
+    <div class="card" onclick="alert('El acceso del cliente se hace con su QR personal')">
+      <h2>📱 Cliente</h2>
+      <p>Acceso solo desde enlace personal</p>
+    </div>
+
+    <div class="footer">
+      Sistema interno · Uso autorizado
+    </div>
+  </div>
+
+<script>
+  function ir(ruta) {
+    window.location.href = ruta;
+  }
+</script>
 
 </body>
 </html>

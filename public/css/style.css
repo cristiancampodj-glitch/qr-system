@@ -1,0 +1,191 @@
+/* ===============================
+   RESET BÁSICO
+================================ */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #000;
+  color: #fff;
+}
+
+/* ===============================
+   TEXTO
+================================ */
+h1, h2, h3 {
+  margin: 0;
+  font-weight: bold;
+}
+
+p {
+  margin: 0;
+}
+
+.sub {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* ===============================
+   CONTENEDORES
+================================ */
+.container,
+.card,
+.pantalla {
+  background: #121212;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.6);
+}
+
+/* ===============================
+   INPUTS & SELECT
+================================ */
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: #1f1f1f;
+  color: white;
+  font-size: 14px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+}
+
+input::placeholder {
+  color: #999;
+}
+
+/* ===============================
+   BOTONES
+================================ */
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: white;
+  background: linear-gradient(135deg, #7b2cff, #a855f7);
+  transition: opacity 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===============================
+   QR
+================================ */
+#qr {
+  margin: 20px auto;
+  width: 220px;
+  height: 220px;
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+/* ===============================
+   RESULTADOS (SEGURIDAD / BARRA)
+================================ */
+.estado {
+  margin-top: 15px;
+  padding: 20px;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.estado.ok {
+  background: #064e3b;
+  color: #34d399;
+}
+
+.estado.error {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
+/* ===============================
+   PERFIL / INFO
+================================ */
+.perfil {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.detalle {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+/* ===============================
+   UTILIDADES
+================================ */
+.oculto {
+  display: none;
+}
+
+.center {
+  text-align: center;
+}
+
+.mt {
+  margin-top: 15px;
+}
+
+.mb {
+  margin-bottom: 15px;
+}
+
+/* ===============================
+   FOOTER / LINKS
+================================ */
+.footer,
+.back {
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.back:hover {
+  opacity: 1;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 480px) {
+  .container,
+  .card,
+  .pantalla {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .perfil {
+    font-size: 20px;
+  }
+}

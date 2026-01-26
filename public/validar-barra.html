@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Barra – Descuentos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Lector QR -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1a1a1a, #000);
+      font-family: Arial, Helvetica, sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .pantalla {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .sub {
+      font-size: 13px;
+      opacity: .7;
+      margin-bottom: 20px;
+    }
+
+    #reader {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .estado {
+      padding: 20px;
+      border-radius: 14px;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    .ok {
+      background: #064e3b;
+      color: #34d399;
+    }
+
+    .error {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+
+    .perfil {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .detalle {
+      font-size: 14px;
+      opacity: .85;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 14px;
+      width: 100%;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #7b2cff, #a855f7);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: .9;
+    }
+
+    .oculto {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="pantalla">
+
+  <h1>🍸 Barra</h1>
+  <div class="sub">Escanea el QR del cliente</div>
+
+  <!-- Cámara -->
+  <div id="reader"></div>
+
+  <!-- Resultado -->
+  <div id="resultado" class="estado oculto"></div>
+
+  <button id="btnOtro" class="oculto" onclick="reiniciar()">
+    Validar otro cliente
+  </button>
+
+</div>
+
+<script>
+  const readerId = "reader";
+  const resultado = document.getElementById("resultado");
+  const btnOtro = document.getElementById("btnOtro");
+
+  let qr;
+
+  function mostrarResultado(html, ok = true) {
+    resultado.innerHTML = html;
+    resultado.className = "estado " + (ok ? "ok" : "error");
+    resultado.classList.remove("oculto");
+    btnOtro.classList.remove("oculto");
+  }
+
+  function iniciarCamara() {
+    resultado.classList.add("oculto");
+    btnOtro.classList.add("oculto");
+
+    qr = new Html5Qrcode(readerId);
+    qr.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScan
+    );
+  }
+
+  async function onScan(textoQR) {
+    qr.stop();
+
+    let token;
+    try {
+      // Si el QR es URL, extraemos token
+      const url = new URL(textoQR);
+      token = url.searchParams.get("token") || textoQR;
+    } catch {
+      token = textoQR;
+    }
+
+    try {
+      const res = await fetch(`/api/barra?token=${encodeURIComponent(token)}`);
+      const data = await res.json();
+
+      if (!data.ok) {
+        mostrarResultado("❌ QR no válido o cliente no ingresó", false);
+        return;
+      }
+
+      mostrarResultado(`
+        <div class="perfil">${data.perfil}</div>
+        <div class="detalle">
+          Descuento aplicado<br>
+          ⭐ Puntos totales: <b>${data.puntos}</b>
+        </div>
+      `, true);
+
+    } catch (e) {
+      mostrarResultado("❌ Error de conexión", false);
+    }
+  }
+
+  function reiniciar() {
+    iniciarCamara();
+  }
+
+  iniciarCamara();
+</script>
+
+</body>
+</html>

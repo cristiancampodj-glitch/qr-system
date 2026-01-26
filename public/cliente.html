@@ -1,49 +1,132 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Mi Acceso</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-</head>
+const express = require("express");
+const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
+const cors = require("cors");
 
-<body style="background:#000;color:white;text-align:center;font-family:Arial">
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"));
 
-<h2>Juan Pérez</h2>
-<div>MILITAR</div>
+/* ===============================
+   CONFIG
+================================ */
+const SECRET_KEY = "CLAVE_SUPER_SECRETA_NO_COMPARTIR";
+const QR_EXPIRATION_SECONDS = 20;
 
-<div id="qr" style="margin:20px auto;width:220px"></div>
-<div>QR se regenera en <span id="tiempo">20</span>s</div>
+const DATA = (file) => path.join(__dirname, "data", file);
+const readJSON = (file) => JSON.parse(fs.readFileSync(DATA(file)));
+const writeJSON = (file, data) =>
+  fs.writeFileSync(DATA(file), JSON.stringify(data, null, 2));
 
-<script>
-const userId = "militar_001";
-const qrDiv = document.getElementById("qr");
-const tiempoEl = document.getElementById("tiempo");
-
-let tiempo = 20;
-
-async function generarQR() {
-  const res = await fetch(`/api/token/${userId}`);
-  const data = await res.json();
-
-  qrDiv.innerHTML = "";
-  new QRCode(qrDiv, {
-    text: data.token,
-    width: 220,
-    height: 220
-  });
-
-  tiempo = 20;
+/* ===============================
+   TOKEN
+================================ */
+function generarToken(id) {
+  const ts = Math.floor(Date.now() / 1000);
+  const base = `${id}.${ts}`;
+  const firma = crypto
+    .createHmac("sha256", SECRET_KEY)
+    .update(base)
+    .digest("hex");
+  return Buffer.from(`${base}.${firma}`).toString("base64");
 }
 
-setInterval(() => {
-  tiempo--;
-  tiempoEl.innerText = tiempo;
-  if (tiempo <= 0) generarQR();
-}, 1000);
+function validarToken(token) {
+  try {
+    const raw = Buffer.from(token, "base64").toString("utf8");
+    const [id, ts, firma] = raw.split(".");
+    if (!id || !ts || !firma) return null;
 
-generarQR();
-</script>
+    if (Date.now() / 1000 - ts > QR_EXPIRATION_SECONDS) return null;
 
-</body>
-</html>
+    const check = crypto
+      .createHmac("sha256", SECRET_KEY)
+      .update(`${id}.${ts}`)
+      .digest("hex");
+
+    return firma === check ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+/* ===============================
+   REGISTRO (RRPP)
+================================ */
+app.post("/api/register", (req, res) => {
+  const clientes = readJSON("clientes.json");
+  const id = "cli_" + Date.now();
+
+  clientes[id] = {
+    id,
+    nombre: req.body.nombre,
+    perfil: req.body.perfil,
+    puntos: 0
+  };
+
+  writeJSON("clientes.json", clientes);
+  res.json({ ok: true, id });
+});
+
+/* ===============================
+   CLIENTE
+================================ */
+app.get("/api/cliente/:id", (req, res) => {
+  const clientes = readJSON("clientes.json");
+  res.json(clientes[req.params.id]);
+});
+
+app.get("/api/token/:id", (req, res) => {
+  res.json({ token: generarToken(req.params.id) });
+});
+
+/* ===============================
+   SEGURIDAD (ENTRADA)
+================================ */
+app.get("/api/entrada", (req, res) => {
+  const id = validarToken(req.query.token);
+  if (!id) return res.json({ ok: false });
+
+  const entradas = readJSON("entradas.json");
+  if (entradas[id]) {
+    return res.json({ ok: false, motivo: "YA INGRESÓ" });
+  }
+
+  entradas[id] = new Date().toISOString();
+  writeJSON("entradas.json", entradas);
+
+  res.json({ ok: true });
+});
+
+/* ===============================
+   BARRA
+================================ */
+app.get("/api/barra", (req, res) => {
+  const id = validarToken(req.query.token);
+  if (!id) return res.json({ ok: false });
+
+  const entradas = readJSON("entradas.json");
+  if (!entradas[id]) {
+    return res.json({ ok: false, motivo: "NO HA INGRESADO" });
+  }
+
+  const clientes = readJSON("clientes.json");
+  clientes[id].puntos += 5;
+  writeJSON("clientes.json", clientes);
+
+  res.json({
+    ok: true,
+    perfil: clientes[id].perfil,
+    puntos: clientes[id].puntos
+  });
+});
+
+/* ===============================
+   SERVER
+================================ */
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log("Servidor activo en puerto " + PORT)
+);
