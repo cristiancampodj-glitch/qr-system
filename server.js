@@ -127,6 +127,50 @@ app.get("/api/barra", (req, res) => {
    SERVER
 ================================ */
 const PORT = process.env.PORT || 3000;
+const CLIENTES_FILE = path.join(__dirname, "data/clientes.json");
+
+function leerClientes() {
+  if (!fs.existsSync(CLIENTES_FILE)) {
+    fs.writeFileSync(CLIENTES_FILE, JSON.stringify({}, null, 2));
+  }
+  return JSON.parse(fs.readFileSync(CLIENTES_FILE));
+}
+
+function guardarClientes(data) {
+  fs.writeFileSync(CLIENTES_FILE, JSON.stringify(data, null, 2));
+}
+
+app.post("/api/registrar-cliente", (req, res) => {
+  const { nombre, documento, tipo } = req.body;
+
+  if (!nombre || !documento || !tipo) {
+    return res.status(400).json({ error: "Datos incompletos" });
+  }
+
+  const clientes = leerClientes();
+
+  if (clientes[documento]) {
+    return res.json({ error: "Cliente ya registrado" });
+  }
+
+  clientes[documento] = {
+    id: documento,
+    nombre,
+    tipo,
+    puntos: 0,
+    registrado: new Date().toISOString()
+  };
+
+  guardarClientes(clientes);
+
+  res.json({
+    ok: true,
+    mensaje: "Cliente registrado correctamente",
+    id: documento
+  });
+});
+
 app.listen(PORT, () =>
   console.log("Servidor activo en puerto " + PORT)
 );
+app.use(express.json());
