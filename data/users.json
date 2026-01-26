@@ -1,0 +1,17 @@
+{
+  "militar_001": {
+    "tipo": "MILITAR",
+    "descuento": 15,
+    "activo": true
+  },
+  "vip_001": {
+    "tipo": "VIP",
+    "descuento": 30,
+    "activo": true
+  },
+  "uni_001": {
+    "tipo": "UNIVERSITARIO",
+    "descuento": 10,
+    "activo": true
+  }
+}

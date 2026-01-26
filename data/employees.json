@@ -1,0 +1,10 @@
+{
+  "seguridad_01": {
+    "rol": "SEGURIDAD",
+    "pin": "1234"
+  },
+  "barra_01": {
+    "rol": "BARRA",
+    "pin": "5678"
+  }
+}
