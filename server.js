@@ -199,3 +199,18 @@ app.get("/api/cliente/:id/qr", (req, res) => {
   const token = "TOKEN_REAL_" + Date.now();
   res.json({ token });
 });
+// ===== VALIDAR ENTRADA (PRUEBA) =====
+app.get("/api/entrada", (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.json({ valido: false, motivo: "Sin QR" });
+  }
+
+  // simulamos validación correcta
+  res.json({
+    valido: true,
+    mensaje: "ENTRADA PERMITIDA",
+    tipo: "MILITAR"
+  });
+});
