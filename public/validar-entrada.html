@@ -5,137 +5,107 @@
   <title>Control de Entrada</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
   <style>
     body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #111;
+      background: #0b0b0b;
       color: white;
+      font-family: Arial, sans-serif;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
-      text-align: center;
     }
 
-    .box {
-      width: 100%;
-      max-width: 500px;
-      padding: 30px;
+    .card {
+      background: #1a1a1a;
+      padding: 25px;
       border-radius: 12px;
-      background: #222;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,.6);
     }
 
-    h1 {
-      margin-bottom: 20px;
-      font-size: 28px;
-    }
-
-    input {
-      width: 100%;
-      padding: 15px;
-      font-size: 18px;
-      border-radius: 8px;
-      border: none;
+    h2 {
       margin-bottom: 15px;
     }
 
-    button {
+    #reader {
       width: 100%;
-      padding: 15px;
-      font-size: 20px;
-      border: none;
-      border-radius: 8px;
-      background: #6a00ff;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .resultado {
-      margin-top: 30px;
-      padding: 30px;
       border-radius: 10px;
-      font-size: 28px;
-      display: none;
+      overflow: hidden;
+    }
+
+    .result {
+      margin-top: 15px;
+      font-weight: bold;
     }
 
     .ok {
-      background: #0f5132;
-      color: #00ff9c;
+      color: #00ff9d;
     }
 
-    .error {
-      background: #842029;
-      color: #ffb3b3;
-    }
-
-    .tipo {
-      font-size: 22px;
-      margin-top: 10px;
+    .fail {
+      color: #ff4d4d;
     }
   </style>
 </head>
 <body>
 
-  <div class="box">
-    <h1>🎫 CONTROL DE ENTRADA</h1>
+<div class="card">
+  <h2>🎟️ CONTROL DE ENTRADA</h2>
 
-    <!-- En móvil el lector QR pega aquí el texto -->
-    <input
-      type="text"
-      id="token"
-      placeholder="Escanea el QR aquí"
-      autofocus
-    />
+  <div id="reader"></div>
 
-    <button onclick="validar()">VALIDAR</button>
+  <div id="resultado" class="result"></div>
+</div>
 
-    <div id="resultado" class="resultado"></div>
-  </div>
+<script>
+  const resultado = document.getElementById("resultado");
 
-  <script>
-    async function validar() {
-      const token = document.getElementById("token").value.trim();
-      const resultado = document.getElementById("resultado");
-
-      if (!token) return;
-
-      resultado.style.display = "block";
-      resultado.className = "resultado";
-      resultado.innerHTML = "Validando...";
-
-      try {
-        const res = await fetch(`/api/validar?token=${encodeURIComponent(token)}`);
-        const data = await res.json();
-
+  function validarToken(token) {
+    fetch(`/api/validar?token=${encodeURIComponent(token)}`)
+      .then(res => res.json())
+      .then(data => {
         if (data.valido) {
-          resultado.classList.add("ok");
           resultado.innerHTML = `
-            ✅ ENTRADA PERMITIDA
-            <div class="tipo">${data.tipo}</div>
+            <div class="ok">
+              ✅ ACCESO PERMITIDO<br>
+              ${data.tipo} <br>
+              ${data.descuento}
+            </div>
           `;
         } else {
-          resultado.classList.add("error");
           resultado.innerHTML = `
-            ❌ ACCESO DENEGADO
-            <div class="tipo">${data.motivo}</div>
+            <div class="fail">
+              ❌ ACCESO DENEGADO<br>
+              ${data.motivo}
+            </div>
           `;
         }
+      })
+      .catch(() => {
+        resultado.innerHTML = "<div class='fail'>Error de conexión</div>";
+      });
+  }
 
-      } catch (e) {
-        resultado.classList.add("error");
-        resultado.innerHTML = "❌ ERROR DE SISTEMA";
-      }
+  const qr = new Html5Qrcode("reader");
 
-      // limpiar input para siguiente persona
-      document.getElementById("token").value = "";
+  qr.start(
+    { facingMode: "environment" },
+    {
+      fps: 10,
+      qrbox: 250
+    },
+    (textoQR) => {
+      qr.stop(); // detenemos la cámara tras leer
+      validarToken(textoQR);
     }
-  </script>
+  ).catch(err => {
+    resultado.innerHTML = "No se pudo acceder a la cámara";
+  });
+</script>
 
 </body>
 </html>
-`
