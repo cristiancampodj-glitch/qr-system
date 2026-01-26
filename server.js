@@ -130,6 +130,27 @@ function guardarClientes(data) {
   fs.writeFileSync(CLIENTES_FILE, JSON.stringify(data, null, 2));
 }
 
+app.post("/api/registrar-cliente", async (req, res) => {
+  try {
+    const { nombre, documento, tipo } = req.body;
+
+    if (!nombre || !documento || !tipo) {
+      return res.status(400).json({ error: "Datos incompletos" });
+    }
+
+    // 👉 por ahora solo prueba, sin postgres
+    console.log("Cliente recibido:", nombre, documento, tipo);
+
+    return res.json({
+      ok: true,
+      id: documento
+    });
+
+  } catch (err) {
+    console.error("Error registrar cliente:", err);
+    res.status(500).json({ error: "Error servidor" });
+  }
+});
 
 
 app.listen(PORT, () =>
