@@ -4,6 +4,9 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
+pool.query("SELECT NOW()")
+  .then(res => console.log("Postgres conectado:", res.rows[0]))
+  .catch(err => console.error("Error Postgres:", err));
 
 const express = require("express");
 const crypto = require("crypto");
@@ -59,31 +62,11 @@ function validarToken(token) {
   }
 }
 
-/* ===============================
-   REGISTRO (RRPP)
-================================ */
-app.post("/api/register", (req, res) => {
-  const clientes = readJSON("clientes.json");
-  const id = "cli_" + Date.now();
-
-  clientes[id] = {
-    id,
-    nombre: req.body.nombre,
-    perfil: req.body.perfil,
-    puntos: 0
-  };
-
-  writeJSON("clientes.json", clientes);
-  res.json({ ok: true, id });
-});
 
 /* ===============================
    CLIENTE
 ================================ */
-app.get("/api/cliente/:id", (req, res) => {
-  const clientes = readJSON("clientes.json");
-  res.json(clientes[req.params.id]);
-});
+
 
 app.get("/api/token/:id", (req, res) => {
   res.json({ token: generarToken(req.params.id) });
@@ -134,7 +117,7 @@ app.get("/api/barra", (req, res) => {
    SERVER
 ================================ */
 const PORT = process.env.PORT || 3000;
-const CLIENTES_FILE = path.join(__dirname, "data/clientes.json");
+
 
 function leerClientes() {
   if (!fs.existsSync(CLIENTES_FILE)) {
@@ -147,35 +130,7 @@ function guardarClientes(data) {
   fs.writeFileSync(CLIENTES_FILE, JSON.stringify(data, null, 2));
 }
 
-app.post("/api/registrar-cliente", (req, res) => {
-  const { nombre, documento, tipo } = req.body;
 
-  if (!nombre || !documento || !tipo) {
-    return res.status(400).json({ error: "Datos incompletos" });
-  }
-
-  const clientes = leerClientes();
-
-  if (clientes[documento]) {
-    return res.json({ error: "Cliente ya registrado" });
-  }
-
-  clientes[documento] = {
-    id: documento,
-    nombre,
-    tipo,
-    puntos: 0,
-    registrado: new Date().toISOString()
-  };
-
-  guardarClientes(clientes);
-
-  res.json({
-    ok: true,
-    mensaje: "Cliente registrado correctamente",
-    id: documento
-  });
-});
 
 app.listen(PORT, () =>
   console.log("Servidor activo en puerto " + PORT)
