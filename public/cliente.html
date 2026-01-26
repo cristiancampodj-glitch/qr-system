@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Acceso</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+<body style="background:#000;color:white;text-align:center;font-family:Arial">
+
+  <h2 id="nombre">Cargando...</h2>
+  <div id="tipo"></div>
+
+  <div id="qr" style="margin:20px auto;width:220px"></div>
+  <div>QR se regenera en <span id="tiempo">10</span>s</div>
+
+<script>
+  const clienteId = "123"; // de prueba
+  const nombreEl = document.getElementById("nombre");
+  const tipoEl = document.getElementById("tipo");
+  const qrDiv = document.getElementById("qr");
+  const tiempoEl = document.getElementById("tiempo");
+
+  let tiempo = 10;
+
+  async function cargarCliente() {
+    const res = await fetch(`/api/cliente/${clienteId}`);
+    const data = await res.json();
+    nombreEl.innerText = data.nombre;
+    tipoEl.innerText = data.tipo;
+  }
+
+  async function generarQR() {
+    const res = await fetch(`/api/cliente/${clienteId}/qr`);
+    const data = await res.json();
+
+    qrDiv.innerHTML = "";
+    new QRCode(qrDiv, {
+      text: data.token,
+      width: 220,
+      height: 220
+    });
+
+    tiempo = 10;
+  }
+
+  setInterval(() => {
+    tiempo--;
+    tiempoEl.innerText = tiempo;
+    if (tiempo <= 0) generarQR();
+  }, 1000);
+
+  cargarCliente();
+  generarQR();
+</script>
+
+</body>
+</html>
