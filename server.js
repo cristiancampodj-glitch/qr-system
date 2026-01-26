@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.static("public"));
 
 const SECRET_KEY = "CLAVE_SUPER_SECRETA_NO_COMPARTIR";
-const USER_ID = "militar_001";
+
 
 function generarToken(userId) {
   const timestamp = Math.floor(Date.now() / 1000);
@@ -21,10 +21,12 @@ function generarToken(userId) {
   return Buffer.from(`${data}.${firma}`).toString("base64");
 }
 
-app.get("/api/token", (req, res) => {
-  const token = generarToken(USER_ID);
+app.get("/api/token/:userId", (req, res) => {
+  const { userId } = req.params;
+  const token = generarToken(userId);
   res.json({ token });
 });
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -32,7 +34,8 @@ app.listen(PORT, () => {
   console.log(`Servidor activo en puerto ${PORT}`);
 });
 
-app.get("/api/validar", (req, res) => {
+app.get("/validar", (req, res) => {
+
   const { token } = req.query;
 
   try {
