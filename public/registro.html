@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Personas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+  <style>
+    body {
+      background: #0b0b0b;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: #1a1a1a;
+      padding: 25px;
+      border-radius: 12px;
+      width: 380px;
+      box-shadow: 0 0 20px rgba(0,0,0,.6);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+    }
+
+    input, select {
+      background: #2a2a2a;
+      color: white;
+    }
+
+    button {
+      background: #7a00ff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #9a30ff;
+    }
+
+    #qr {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .info {
+      margin-top: 10px;
+      font-size: 13px;
+      text-align: center;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>📝 REGISTRO DE PERSONAS</h2>
+
+  <input id="nombre" placeholder="Nombre completo">
+  <input id="documento" placeholder="Documento / ID">
+
+  <select id="tipo">
+    <option value="">Selecciona tipo</option>
+    <option value="militar">Fuerzas Armadas</option>
+    <option value="universitario">Universitario</option>
+    <option value="vip">VIP</option>
+    <option value="staff">Staff</option>
+  </select>
+
+  <button onclick="registrar()">REGISTRAR</button>
+
+  <div id="qr"></div>
+
+  <div class="info" id="info"></div>
+</div>
+
+<script>
+  function registrar() {
+    const nombre = document.getElementById("nombre").value.trim();
+    const documento = document.getElementById("documento").value.trim();
+    const tipo = document.getElementById("tipo").value;
+
+    if (!nombre || !documento || !tipo) {
+      alert("Completa todos los campos");
+      return;
+    }
+
+    const userId = `${tipo}_${documento}`;
+
+    fetch(`/api/token/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("qr").innerHTML = "";
+        new QRCode(document.getElementById("qr"), {
+          text: data.token,
+          width: 200,
+          height: 200
+        });
+
+        document.getElementById("info").innerHTML = `
+          <b>${nombre}</b><br>
+          Tipo: ${tipo.toUpperCase()}<br>
+          ID: ${userId}
+        `;
+      })
+      .catch(() => {
+        alert("Error generando QR");
+      });
+  }
+</script>
+
+</body>
+</html>
