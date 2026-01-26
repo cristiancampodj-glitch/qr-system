@@ -184,3 +184,18 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor activo en puerto ${PORT}`);
 });
+// ===== CLIENTE (DATOS DE PRUEBA) =====
+app.get("/api/cliente/:id", (req, res) => {
+  res.json({
+    nombre: "Juan Pérez",
+    tipo: "MILITAR",
+    entro: true,
+    puntos: 325
+  });
+});
+
+// ===== QR DINÁMICO DE PRUEBA =====
+app.get("/api/cliente/:id/qr", (req, res) => {
+  const token = "TOKEN_REAL_" + Date.now();
+  res.json({ token });
+});
