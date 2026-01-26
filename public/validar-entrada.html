@@ -8,103 +8,184 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
+    * { box-sizing: border-box; }
+
     body {
-      background: #0b0b0b;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: #fff;
       height: 100vh;
     }
 
-    .card {
-      background: #1a1a1a;
-      padding: 25px;
-      border-radius: 12px;
-      width: 350px;
+    .pantalla {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       text-align: center;
-      box-shadow: 0 0 20px rgba(0,0,0,.6);
+      padding: 20px;
     }
 
-    h2 {
-      margin-bottom: 15px;
+    .camara {
+      background: #000;
     }
 
     #reader {
       width: 100%;
-      border-radius: 10px;
-      overflow: hidden;
+      max-width: 420px;
     }
 
-    .result {
-      margin-top: 15px;
+    .estado-validando {
+      background: #ffc107;
+      color: #000;
+    }
+
+    .estado-ok {
+      background: #0f5132;
+      color: #00ff9c;
+    }
+
+    .estado-error {
+      background: #842029;
+      color: #fff;
+    }
+
+    .titulo {
+      font-size: 42px;
       font-weight: bold;
+      margin-bottom: 10px;
     }
 
-    .ok {
-      color: #00ff9d;
+    .sub {
+      font-size: 20px;
+      opacity: 0.9;
     }
 
-    .fail {
-      color: #ff4d4d;
+    .btn {
+      margin-top: 30px;
+      padding: 20px 30px;
+      font-size: 22px;
+      border: none;
+      border-radius: 12px;
+      background: #000;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .oculto {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>🎟️ CONTROL DE ENTRADA</h2>
-
+<!-- PANTALLA CÁMARA -->
+<div id="pantallaCamara" class="pantalla camara">
+  <h2>📷 ESCANEA EL QR</h2>
   <div id="reader"></div>
+</div>
 
-  <div id="resultado" class="result"></div>
+<!-- PANTALLA VALIDANDO -->
+<div id="pantallaValidando" class="pantalla estado-validando oculto">
+  <div class="titulo">VALIDANDO…</div>
+  <div class="sub">Un momento</div>
+</div>
+
+<!-- PANTALLA OK -->
+<div id="pantallaOk" class="pantalla estado-ok oculto">
+  <div class="titulo">ENTRADA</div>
+  <div class="titulo">PERMITIDA</div>
+  <div class="sub" id="tipoPersona"></div>
+  <button class="btn" onclick="reiniciar()">VALIDAR OTRO</button>
+</div>
+
+<!-- PANTALLA ERROR -->
+<div id="pantallaError" class="pantalla estado-error oculto">
+  <div class="titulo">ACCESO</div>
+  <div class="titulo">DENEGADO</div>
+  <div class="sub" id="motivoError"></div>
+  <button class="btn" onclick="reiniciar()">VALIDAR OTRO</button>
 </div>
 
 <script>
-  const resultado = document.getElementById("resultado");
+  const camara = document.getElementById("pantallaCamara");
+  const validando = document.getElementById("pantallaValidando");
+  const ok = document.getElementById("pantallaOk");
+  const error = document.getElementById("pantallaError");
+  const tipoPersona = document.getElementById("tipoPersona");
+  const motivoError = document.getElementById("motivoError");
 
-  function validarToken(token) {
+  let qr;
+
+  function mostrar(pantalla) {
+    camara.classList.add("oculto");
+    validando.classList.add("oculto");
+    ok.classList.add("oculto");
+    error.classList.add("oculto");
+    pantalla.classList.remove("oculto");
+  }
+
+  function iniciarCamara() {
+    mostrar(camara);
+
+    qr = new Html5Qrcode("reader");
+    qr.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScan
+    );
+  }
+
+  function onScan(textoQR) {
+    qr.stop();
+    mostrar(validando);
+
+    let token = null;
+
+    try {
+      const url = new URL(textoQR);
+      token = url.searchParams.get("token");
+    } catch {
+      mostrarError("QR inválido");
+      return;
+    }
+
+    if (!token) {
+      mostrarError("QR inválido");
+      return;
+    }
+
     fetch(`/api/entrada?token=${encodeURIComponent(token)}`)
       .then(res => res.json())
       .then(data => {
         if (data.valido) {
-          resultado.innerHTML = `
-            <div class="ok">
-              ✅ ACCESO PERMITIDO<br>
-              ${data.tipo} <br>
-              ${data.descuento}
-            </div>
-          `;
+          tipoPersona.textContent = data.tipo || "";
+          mostrar(ok);
         } else {
-          resultado.innerHTML = `
-            <div class="fail">
-              ❌ ACCESO DENEGADO<br>
-              ${data.motivo}
-            </div>
-          `;
+          mostrarError(data.motivo || "No autorizado");
         }
       })
       .catch(() => {
-        resultado.innerHTML = "<div class='fail'>Error de conexión</div>";
+        mostrarError("Error de sistema");
       });
   }
 
-  const qr = new Html5Qrcode("reader");
+  function mostrarError(msg) {
+    motivoError.textContent = msg;
+    mostrar(error);
+  }
 
-  qr.start(
-    { facingMode: "environment" },
-    {
-      fps: 10,
-      qrbox: 250
-    },
-    (textoQR) => {
-      qr.stop(); // detenemos la cámara tras leer
-      validarToken(textoQR);
-    }
-  ).catch(err => {
-    resultado.innerHTML = "No se pudo acceder a la cámara";
-  });
+  function reiniciar() {
+    iniciarCamara();
+  }
+
+  iniciarCamara();
 </script>
 
 </body>
