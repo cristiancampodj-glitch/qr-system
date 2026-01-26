@@ -65,7 +65,7 @@
   const resultado = document.getElementById("resultado");
 
   function validarToken(token) {
-    fetch(`/api/validar?token=${encodeURIComponent(token)}`)
+    fetch(`/api/entrada?token=${encodeURIComponent(token)}`)
       .then(res => res.json())
       .then(data => {
         if (data.valido) {
