@@ -6,52 +6,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 </head>
+
 <body style="background:#000;color:white;text-align:center;font-family:Arial">
 
-  <h2 id="nombre">Cargando...</h2>
-  <div id="tipo"></div>
+<h2>Juan Pérez</h2>
+<div>MILITAR</div>
 
-  <div id="qr" style="margin:20px auto;width:220px"></div>
-  <div>QR se regenera en <span id="tiempo">10</span>s</div>
+<div id="qr" style="margin:20px auto;width:220px"></div>
+<div>QR se regenera en <span id="tiempo">20</span>s</div>
 
 <script>
-  const clienteId = "123"; // de prueba
-  const nombreEl = document.getElementById("nombre");
-  const tipoEl = document.getElementById("tipo");
-  const qrDiv = document.getElementById("qr");
-  const tiempoEl = document.getElementById("tiempo");
+const userId = "militar_001";
+const qrDiv = document.getElementById("qr");
+const tiempoEl = document.getElementById("tiempo");
 
-  let tiempo = 10;
+let tiempo = 20;
 
-  async function cargarCliente() {
-    const res = await fetch(`/api/cliente/${clienteId}`);
-    const data = await res.json();
-    nombreEl.innerText = data.nombre;
-    tipoEl.innerText = data.tipo;
-  }
+async function generarQR() {
+  const res = await fetch(`/api/token/${userId}`);
+  const data = await res.json();
 
-  async function generarQR() {
-    const res = await fetch(`/api/cliente/${clienteId}/qr`);
-    const data = await res.json();
+  qrDiv.innerHTML = "";
+  new QRCode(qrDiv, {
+    text: data.token,
+    width: 220,
+    height: 220
+  });
 
-    qrDiv.innerHTML = "";
-    new QRCode(qrDiv, {
-      text: data.token,
-      width: 220,
-      height: 220
-    });
+  tiempo = 20;
+}
 
-    tiempo = 10;
-  }
+setInterval(() => {
+  tiempo--;
+  tiempoEl.innerText = tiempo;
+  if (tiempo <= 0) generarQR();
+}, 1000);
 
-  setInterval(() => {
-    tiempo--;
-    tiempoEl.innerText = tiempo;
-    if (tiempo <= 0) generarQR();
-  }, 1000);
-
-  cargarCliente();
-  generarQR();
+generarQR();
 </script>
 
 </body>
