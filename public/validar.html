@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Validar QR</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+
+<h2>Validación de QR</h2>
+<div id="reader" style="width:300px;"></div>
+<p id="resultado"></p>
+
+<script>
+const result = document.getElementById("resultado");
+
+new Html5Qrcode("reader").start(
+  { facingMode: "environment" },
+  { fps: 10, qrbox: 250 },
+  async (token) => {
+    const res = await fetch(`/api/validar?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+
+    if (data.valido) {
+      result.innerHTML = "✅ VÁLIDO – " + data.descuento;
+      result.style.color = "green";
+    } else {
+      result.innerHTML = "❌ " + data.motivo;
+      result.style.color = "red";
+    }
+  }
+);
+</script>
+
+</body>
+</html>
