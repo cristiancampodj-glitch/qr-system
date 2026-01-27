@@ -18,13 +18,11 @@ async function login() {
     return;
   }
 
-  // Guardamos sesión simple
   localStorage.setItem("user", JSON.stringify(data.user));
 
-  // Redirección según rol
-  if (data.user.rol === "cliente") {
-    window.location.href = "/home.html";
-  } else {
+  if (data.user.rol === "staff") {
     window.location.href = "/panel.html";
+  } else {
+    window.location.href = "/home.html";
   }
 }
