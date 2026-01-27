@@ -62,57 +62,38 @@ function validarToken(token) {
 /* ===============================
    REGISTRO CLIENTE (RRPP)
 ================================ */
-app.post("/api/registrar-cliente", async (req, res) => {
-  const { nombre, contacto, tipo } = req.body;
-
-  if (!nombre || !contacto || !tipo) {
-    return res.status(400).json({ error: "Datos incompletos" });
-  }
+app.post("/api/clientes", async (req, res) => {
+  const { nombre, email, tipo } = req.body;
 
   try {
     const result = await pool.query(
-      `INSERT INTO clientes (nombre, contacto, tipo)
-       VALUES ($1, $2, $3)
+      `INSERT INTO clientess (nombre, email, tipo, puntos, estado)
+       VALUES ($1, $2, $3, 0, 'ACTIVO')
        RETURNING id`,
-      [nombre, contacto, tipo]
+      [nombre, email, tipo]
     );
 
-    res.json({
-      ok: true,
-      id: result.rows[0].id
-    });
+    res.json({ ok: true, id: result.rows[0].id });
   } catch (err) {
-    if (err.code === "23505") {
-      return res.json({ error: "Cliente ya registrado" });
-    }
-    console.error(err);
-    res.status(500).json({ error: "Error servidor" });
+    res.status(500).json({ error: "Error registrando cliente" });
   }
 });
+
 
 /* ===============================
    OBTENER CLIENTE
 ================================ */
-app.get("/api/cliente/:id", async (req, res) => {
+app.get("/api/clientes/:id", async (req, res) => {
   const { id } = req.params;
 
-  try {
-    const result = await pool.query(
-      "SELECT id, nombre, tipo, puntos FROM clientess WHERE id = $1",
-      [id]
-    );
+  const result = await pool.query(
+    "SELECT nombre, tipo, puntos FROM clientess WHERE id = $1",
+    [id]
+  );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Cliente no existe" });
-    }
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error obteniendo cliente" });
-  }
+  res.json(result.rows[0]);
 });
+
 
 
 /* ===============================
@@ -121,7 +102,22 @@ app.get("/api/cliente/:id", async (req, res) => {
 app.get("/api/token/:id", (req, res) => {
   res.json({ token: generarToken(req.params.id) });
 });
+/* ===============================
+   SUMAR PUNTOS (BARRA)
+================================ */
+app.post("/api/consumir", async (req, res) => {
+  const { id } = req.body;
 
+  const euros = 6;
+  const paros = euros * 0.7;
+
+  await pool.query(
+    "UPDATE clientess SET puntos = puntos + $1 WHERE id = $2",
+    [paros, id]
+  );
+
+  res.json({ ok: true, paros });
+});
 /* ===============================
    SUMAR PUNTOS (BARRA)
 ================================ */

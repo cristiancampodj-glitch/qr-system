@@ -1,0 +1,177 @@
+:root {
+  --bg: #0b0b0f;
+  --card: #15151d;
+  --primary: #8b5cf6;
+  --text: #ffffff;
+  --muted: #9ca3af;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+}
+
+body {
+  background: radial-gradient(circle at top, #1a1a2e, #000);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* HEADER */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  font-weight: bold;
+}
+
+.logo {
+  font-size: 18px;
+}
+
+.status {
+  font-size: 14px;
+}
+
+.status.live {
+  color: #22c55e;
+}
+
+/* CONTENIDO */
+.container {
+  padding: 16px;
+}
+
+/* EN VIVO */
+.now-playing {
+  display: flex;
+  gap: 16px;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.cover {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  border-radius: 12px;
+}
+
+.info h1 {
+  font-size: 22px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.play-btn {
+  margin-top: 10px;
+  background: var(--primary);
+  border: none;
+  padding: 10px 14px;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* TARJETA */
+.card-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 320px;
+  background: linear-gradient(135deg, #1f1f2e, #0f0f18);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.type {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.vip {
+  background: gold;
+  color: black;
+}
+
+.qr-box {
+  display: flex;
+  justify-content: center;
+  margin: 14px 0;
+}
+
+.qr-placeholder {
+  width: 120px;
+  height: 120px;
+  background: #111;
+  border: 2px dashed #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.points {
+  text-align: center;
+  font-weight: bold;
+}
+
+/* LISTAS */
+.lists h2 {
+  margin-bottom: 10px;
+}
+
+.list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.item {
+  background: var(--card);
+  padding: 12px;
+  border-radius: 12px;
+  min-width: 160px;
+  text-align: center;
+}
+
+/* NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #0f0f18;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+}
+
+.nav-item {
+  font-size: 20px;
+  opacity: .5;
+}
+
+.nav-item.active {
+  opacity: 1;
+  color: var(--primary);
+}

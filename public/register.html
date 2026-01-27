@@ -1,44 +1,24 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Registro de Cliente</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<input id="nombre" placeholder="Nombre" />
+<input id="email" placeholder="Email" />
+<select id="tipo">
+  <option>VIP</option>
+  <option>General</option>
+</select>
+<button onclick="registrar()">Registrar</button>
 
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+<script>
+async function registrar() {
+  const res = await fetch("/api/clientes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nombre: nombre.value,
+      email: email.value,
+      tipo: tipo.value
+    })
+  });
 
-<div class="card">
-  <h1>📝 Registro de Cliente</h1>
-  <p class="subtitle">Uso exclusivo RRPP / Administración</p>
-
-  <form id="formRegistro">
-    <label>Nombre completo</label>
-    <input id="nombre" required placeholder="Ej: Juan Pérez">
-
-    <label>Documento / ID</label>
-    <input id="documento" required placeholder="DNI / Cédula">
-
-    <label>Tipo de cliente</label>
-    <select id="tipo" required>
-      <option value="">Seleccionar…</option>
-      <option value="MILITAR">Militar</option>
-      <option value="UNIVERSITARIO">Universitario</option>
-      <option value="VIP">VIP</option>
-      <option value="STAFF">Staff</option>
-    </select>
-
-    <button type="submit">Registrar cliente</button>
-  </form>
-
-  <div id="mensaje" class="msg"></div>
-
-  <div class="back" onclick="window.location.href='index.html'">
-    ← Volver al panel
-  </div>
-</div>
-
-<script src="js/register.js"></script>
-</body>
-</html>
+  const data = await res.json();
+  alert("ID del cliente: " + data.id);
+}
+</script>
