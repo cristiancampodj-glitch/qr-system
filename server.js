@@ -231,3 +231,22 @@ app.get("/api/pase/:token", async (req, res) => {
 
   res.json(result.rows[0]);
 });
+app.get("/api/pase/:token", async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const result = await pool.query(
+      "SELECT nombre, tipo, puntos FROM clientess WHERE token_validacion = $1",
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Pase no válido" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error servidor" });
+  }
+});
