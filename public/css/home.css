@@ -1,133 +1,77 @@
-:root {
-  --bg: #0f0f18;
-  --card: #16162a;
-  --primary: #8b5cf6;
-  --text: #ffffff;
-  --muted: #9ca3af;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, sans-serif;
-}
-
 body {
-  background: radial-gradient(circle at top, #1a1a2e, #000);
-  color: var(--text);
-  padding-bottom: 80px;
+  background: radial-gradient(circle at top, #1b1b3a, #000);
+  color: white;
 }
 
-/* HEADER */
-.header {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  padding: 20px;
-}
-
-.logo {
-  width: 42px;
-}
-
-.badge {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.vip {
-  background: gold;
-  color: #000;
-}
-
-/* CARD */
-.card {
-  margin: 16px;
-  background: var(--card);
-  border-radius: 20px;
-  padding: 20px;
+.pass-card {
+  background: #12122a;
+  border-radius: 28px;
+  margin: 20px;
+  padding: 24px;
   text-align: center;
 }
 
-.qr-box img {
-  margin: 12px 0;
-  border-radius: 12px;
-}
-
-.paros {
-  margin-top: 10px;
-}
-
-.paros span {
-  font-size: 12px;
-  color: var(--muted);
+.qr img {
+  border-radius: 18px;
 }
 
 .paros strong {
-  display: block;
-  font-size: 28px;
-  color: var(--primary);
+  font-size: 32px;
+  color: #8b5cf6;
 }
 
-.estado {
-  margin-top: 10px;
-  font-size: 12px;
-}
-
-.activo {
-  color: #4ade80;
-}
-
-/* ACTIONS */
-.actions {
+.modules {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 16px;
+  gap: 14px;
+  margin: 20px;
 }
 
-.action {
-  background: var(--card);
-  border-radius: 16px;
+.modules div {
+  background: #14142f;
+  border-radius: 18px;
   padding: 16px 6px;
   text-align: center;
-  font-size: 20px;
 }
 
-.action span {
-  display: block;
-  font-size: 12px;
-  margin-top: 6px;
-}
-
-/* PROMO */
-.promo {
-  margin: 16px;
-  padding: 16px;
+.banner {
   background: linear-gradient(135deg, #7c3aed, #9333ea);
+  margin: 20px;
   border-radius: 20px;
+  padding: 16px;
 }
-
-/* NAV */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #0a0a12;
+body.login {
+  background: radial-gradient(circle at top, #1b1b3a, #000);
+  height: 100vh;
   display: flex;
-  justify-content: space-around;
-  padding: 14px 0;
+  justify-content: center;
+  align-items: center;
+  color: white;
 }
 
-.nav-item {
-  font-size: 22px;
-  opacity: .4;
+.login-card {
+  background: #12122a;
+  padding: 40px;
+  border-radius: 24px;
+  width: 320px;
+  text-align: center;
 }
 
-.nav-item.active {
-  opacity: 1;
-  color: var(--primary);
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 12px;
+  border: none;
+}
+
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  background: #8b5cf6;
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 16px;
 }

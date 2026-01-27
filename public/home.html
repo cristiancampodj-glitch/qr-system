@@ -1,56 +1,47 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>EUON · Home</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/home.css" />
-</head>
-<body>
-
-  <!-- HEADER -->
-  <header class="header">
-    <img src="assets/logo.png" class="logo" />
+<header class="top">
+  <div class="user">
+    <img src="assets/logo.png">
     <div>
-      <h2>Hola, Juan 👋</h2>
+      <h1>Hola, Juan 👋</h1>
       <span class="badge vip">VIP</span>
     </div>
-  </header>
+  </div>
+</header>
 
-  <!-- TARJETA PRINCIPAL -->
-  <section class="card">
-    <h3>Tu Pase</h3>
-    <div class="qr-box">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=EUON123" />
-    </div>
-    <div class="paros">
-      <span>PARÖS</span>
-      <strong>120</strong>
-    </div>
-    <div class="estado activo">ACTIVO</div>
-  </section>
+<section class="pass-card">
+  <h2>Tu Pase</h2>
 
-  <!-- ACCIONES -->
-  <section class="actions">
-    <div class="action">🎉<span>Eventos</span></div>
-    <div class="action">🎟️<span>Mi Pase</span></div>
-    <div class="action">📻<span>Emisora</span></div>
-    <div class="action">🎁<span>Premios</span></div>
-  </section>
+  <div class="qr">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=EUON123">
+  </div>
 
-  <!-- PROMO -->
-  <section class="promo">
-    <h4>🔥 Próximo evento</h4>
-    <p>Este viernes · DJ Internacional</p>
-  </section>
+  <div class="paros">
+    <small>PARÖS</small>
+    <strong>120</strong>
+  </div>
 
-  <!-- NAV -->
-  <nav class="bottom-nav">
-    <div class="nav-item active">🏠</div>
-    <div class="nav-item">🎉</div>
-    <div class="nav-item">🔲</div>
-    <div class="nav-item">👤</div>
-  </nav>
+  <span class="status active">ACTIVO</span>
+</section>
 
-</body>
-</html>
+<section class="modules">
+  <div>🎉<span>Eventos</span></div>
+  <div>🎟️<span>Mi Pase</span></div>
+  <div>📻<span>Emisora</span></div>
+  <div>🎁<span>Premios</span></div>
+</section>
+
+<section class="banner">
+  <strong>🔥 Próximo evento</strong>
+  <p>Este viernes · DJ Internacional</p>
+</section>
+
+<nav class="nav">
+  <span>🏠</span>
+  <span>🎉</span>
+  <span>🔲</span>
+  <span>👤</span>
+</nav>
+<script>
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) location.href = "/login.html";
+</script>

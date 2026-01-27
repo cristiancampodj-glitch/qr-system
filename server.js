@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 
 const app = express();
@@ -146,3 +147,73 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log("🚀 Servidor activo en puerto " + PORT)
 );
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  const result = await pool.query(
+    "SELECT * FROM clientess WHERE email=$1",
+    [email]
+  );
+
+  if (result.rows.length === 0) {
+    return res.json({ ok: false, error: "Usuario no encontrado" });
+  }
+
+  const user = result.rows[0];
+
+  // por ahora sin hash (como dijiste)
+  if (user.password !== password) {
+    return res.json({ ok: false, error: "Contraseña incorrecta" });
+  }
+
+  res.json({
+    ok: true,
+    user: {
+      id: user.id,
+      nombre: user.nombre,
+      tipo: user.tipo,
+      puntos: user.puntos,
+      rol: user.tipo === "staff" ? "empleado" : "cliente"
+    }
+  });
+});
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.json({ ok: false, error: "Datos incompletos" });
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT id, nombre, email, password, tipo AS rol, puntos FROM clientess WHERE email = $1",
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ ok: false, error: "Usuario no existe" });
+    }
+
+    const user = result.rows[0];
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.json({ ok: false, error: "Contraseña incorrecta" });
+    }
+
+    res.json({
+      ok: true,
+      user: {
+        id: user.id,
+        nombre: user.nombre,
+        email: user.email,
+        rol: user.rol,
+        puntos: user.puntos
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.json({ ok: false, error: "Error servidor" });
+  }
+});
