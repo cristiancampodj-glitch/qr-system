@@ -1,18 +1,7 @@
-const { Pool } = require("pg");
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
-pool.query("SELECT NOW()")
-  .then(res => console.log("Postgres conectado:", res.rows[0]))
-  .catch(err => console.error("Error Postgres:", err));
-
 const express = require("express");
-const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
 const cors = require("cors");
+const crypto = require("crypto");
+const { Pool } = require("pg");
 
 const app = express();
 app.use(cors());
@@ -20,18 +9,25 @@ app.use(express.json());
 app.use(express.static("public"));
 
 /* ===============================
-   CONFIG
+   POSTGRES
 ================================ */
-const SECRET_KEY = "CLAVE_SUPER_SECRETA_NO_COMPARTIR";
-const QR_EXPIRATION_SECONDS = 20;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
-const DATA = (file) => path.join(__dirname, "data", file);
-const readJSON = (file) => JSON.parse(fs.readFileSync(DATA(file)));
-const writeJSON = (file, data) =>
-  fs.writeFileSync(DATA(file), JSON.stringify(data, null, 2));
+pool.query("SELECT NOW()")
+  .then(res => console.log("✅ Postgres conectado:", res.rows[0]))
+  .catch(err => console.error("❌ Error Postgres:", err));
 
 /* ===============================
-   TOKEN
+   CONFIG
+================================ */
+const SECRET_KEY = "CLAVE_SUPER_SECRETA";
+const QR_EXPIRATION_SECONDS = 20;
+
+/* ===============================
+   TOKEN QR
 ================================ */
 function generarToken(id) {
   const ts = Math.floor(Date.now() / 1000);
@@ -40,6 +36,7 @@ function generarToken(id) {
     .createHmac("sha256", SECRET_KEY)
     .update(base)
     .digest("hex");
+
   return Buffer.from(`${base}.${firma}`).toString("base64");
 }
 
@@ -62,54 +59,87 @@ function validarToken(token) {
   }
 }
 
+/* ===============================
+   REGISTRO CLIENTE (RRPP)
+================================ */
+app.post("/api/registrar-cliente", async (req, res) => {
+  const { nombre, contacto, tipo } = req.body;
+
+  if (!nombre || !contacto || !tipo) {
+    return res.status(400).json({ error: "Datos incompletos" });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO clientes (nombre, contacto, tipo)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [nombre, contacto, tipo]
+    );
+
+    res.json({
+      ok: true,
+      id: result.rows[0].id
+    });
+  } catch (err) {
+    if (err.code === "23505") {
+      return res.json({ error: "Cliente ya registrado" });
+    }
+    console.error(err);
+    res.status(500).json({ error: "Error servidor" });
+  }
+});
 
 /* ===============================
-   CLIENTE
+   OBTENER CLIENTE
 ================================ */
+app.get("/api/cliente/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      "SELECT id, nombre, tipo, puntos FROM clientess WHERE id = $1",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Cliente no existe" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error obteniendo cliente" });
+  }
+});
 
 
+/* ===============================
+   TOKEN QR CLIENTE
+================================ */
 app.get("/api/token/:id", (req, res) => {
   res.json({ token: generarToken(req.params.id) });
 });
 
 /* ===============================
-   SEGURIDAD (ENTRADA)
+   SUMAR PUNTOS (BARRA)
 ================================ */
-app.get("/api/entrada", (req, res) => {
-  const id = validarToken(req.query.token);
+app.post("/api/barra", async (req, res) => {
+  const id = validarToken(req.body.token);
   if (!id) return res.json({ ok: false });
 
-  const entradas = readJSON("entradas.json");
-  if (entradas[id]) {
-    return res.json({ ok: false, motivo: "YA INGRESÓ" });
-  }
-
-  entradas[id] = new Date().toISOString();
-  writeJSON("entradas.json", entradas);
-
-  res.json({ ok: true });
-});
-
-/* ===============================
-   BARRA
-================================ */
-app.get("/api/barra", (req, res) => {
-  const id = validarToken(req.query.token);
-  if (!id) return res.json({ ok: false });
-
-  const entradas = readJSON("entradas.json");
-  if (!entradas[id]) {
-    return res.json({ ok: false, motivo: "NO HA INGRESADO" });
-  }
-
-  const clientes = readJSON("clientes.json");
-  clientes[id].puntos += 5;
-  writeJSON("clientes.json", clientes);
+  const result = await pool.query(
+    `UPDATE clientes
+     SET puntos = puntos + 5
+     WHERE id=$1
+     RETURNING puntos`,
+    [id]
+  );
 
   res.json({
     ok: true,
-    perfil: clientes[id].perfil,
-    puntos: clientes[id].puntos
+    puntos: result.rows[0].puntos
   });
 });
 
@@ -117,43 +147,6 @@ app.get("/api/barra", (req, res) => {
    SERVER
 ================================ */
 const PORT = process.env.PORT || 3000;
-
-
-function leerClientes() {
-  if (!fs.existsSync(CLIENTES_FILE)) {
-    fs.writeFileSync(CLIENTES_FILE, JSON.stringify({}, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(CLIENTES_FILE));
-}
-
-function guardarClientes(data) {
-  fs.writeFileSync(CLIENTES_FILE, JSON.stringify(data, null, 2));
-}
-
-app.post("/api/registrar-cliente", async (req, res) => {
-  try {
-    const { nombre, documento, tipo } = req.body;
-
-    if (!nombre || !documento || !tipo) {
-      return res.status(400).json({ error: "Datos incompletos" });
-    }
-
-    // 👉 por ahora solo prueba, sin postgres
-    console.log("Cliente recibido:", nombre, documento, tipo);
-
-    return res.json({
-      ok: true,
-      id: documento
-    });
-
-  } catch (err) {
-    console.error("Error registrar cliente:", err);
-    res.status(500).json({ error: "Error servidor" });
-  }
-});
-
-
 app.listen(PORT, () =>
-  console.log("Servidor activo en puerto " + PORT)
+  console.log("🚀 Servidor activo en puerto " + PORT)
 );
-app.use(express.json());
