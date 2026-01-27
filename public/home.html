@@ -1,9 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Pase</title>
+  <link rel="stylesheet" href="/css/home.css">
+</head>
+
+<body>
+
 <header class="top">
   <div class="user">
-    <img src="assets/logo.png">
+    <img src="/assets/logo.png" alt="Logo">
     <div>
-      <h1>Hola, Juan 👋</h1>
-      <span class="badge vip">VIP</span>
+      <h1 id="nombre">Hola 👋</h1>
+      <span id="tipo" class="badge vip">VIP</span>
     </div>
   </div>
 </header>
@@ -12,22 +23,22 @@
   <h2>Tu Pase</h2>
 
   <div class="qr">
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=EUON123">
+    <img id="qr" src="" alt="QR Pase">
   </div>
 
   <div class="paros">
     <small>PARÖS</small>
-    <strong>120</strong>
+    <strong id="puntos">0</strong>
   </div>
 
-  <span class="status active">ACTIVO</span>
+  <span id="estado" class="status active">ACTIVO</span>
 </section>
 
 <section class="modules">
-  <div>🎉<span>Eventos</span></div>
-  <div>🎟️<span>Mi Pase</span></div>
-  <div>📻<span>Emisora</span></div>
-  <div>🎁<span>Premios</span></div>
+  <div class="module">🎉<span>Eventos</span></div>
+  <div class="module">🎟️<span>Mi Pase</span></div>
+  <div class="module">📻<span>Emisora</span></div>
+  <div class="module">🎁<span>Premios</span></div>
 </section>
 
 <section class="banner">
@@ -41,7 +52,7 @@
   <span>🔲</span>
   <span>👤</span>
 </nav>
-<script>
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user) location.href = "/login.html";
-</script>
+
+<script src="/js/home.js"></script>
+</body>
+</html>

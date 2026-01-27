@@ -38,12 +38,12 @@ app.post("/api/login", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.json({ ok: false, error: "Usuario no encontrado" });
+      return res.json({ ok: false, error: "Usuario no existe" });
     }
 
     const user = result.rows[0];
-    const match = await bcrypt.compare(password, user.password_hash);
 
+    const match = await bcrypt.compare(password, user.password_hash);
     if (!match) {
       return res.json({ ok: false, error: "Contraseña incorrecta" });
     }
@@ -54,16 +54,17 @@ app.post("/api/login", async (req, res) => {
         id: user.id,
         nombre: user.nombre,
         email: user.email,
-        rol: user.tipo,
+        rol: user.tipo,   // VIP / STAFF / CLIENTE
         puntos: user.puntos
       }
     });
 
   } catch (err) {
     console.error(err);
-    res.json({ ok: false, error: "Error del servidor" });
+    res.status(500).json({ ok: false, error: "Error servidor" });
   }
 });
+
 
 /* ===============================
    REGISTRO CLIENTE (ADMIN)

@@ -1,77 +1,79 @@
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
 body {
-  background: radial-gradient(circle at top, #1b1b3a, #000);
+  margin: 0;
+  background: radial-gradient(circle at top, #1f1f1f, #0e0e0e);
   color: white;
 }
 
-.pass-card {
-  background: #12122a;
-  border-radius: 28px;
-  margin: 20px;
-  padding: 24px;
-  text-align: center;
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 20px;
 }
 
-.qr img {
-  border-radius: 18px;
+/* HEADER */
+.header h1 {
+  margin: 0;
+  font-size: 1.4rem;
 }
 
-.paros strong {
-  font-size: 32px;
-  color: #8b5cf6;
-}
-
-.modules {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin: 20px;
-}
-
-.modules div {
-  background: #14142f;
-  border-radius: 18px;
-  padding: 16px 6px;
-  text-align: center;
-}
-
-.banner {
-  background: linear-gradient(135deg, #7c3aed, #9333ea);
-  margin: 20px;
-  border-radius: 20px;
-  padding: 16px;
-}
-body.login {
-  background: radial-gradient(circle at top, #1b1b3a, #000);
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-}
-
-.login-card {
-  background: #12122a;
-  padding: 40px;
-  border-radius: 24px;
-  width: 320px;
-  text-align: center;
-}
-
-.login-card input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 12px;
-  border: none;
-}
-
-.login-card button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 16px;
+.badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
   background: #8b5cf6;
-  border: none;
+  font-size: 0.75rem;
+}
+
+/* CARD */
+.card {
+  background: #181818;
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 10px 40px rgba(0,0,0,.5);
+}
+
+.card img {
+  width: 100%;
   border-radius: 14px;
-  color: white;
-  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: #a1a1aa;
+}
+
+/* ACTIONS */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.action {
+  background: #1f1f1f;
+  padding: 14px;
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: #272727;
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: #a1a1aa;
 }
