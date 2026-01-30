@@ -1,24 +1,21 @@
-<input id="nombre" placeholder="Nombre" />
-<input id="email" placeholder="Email" />
-<select id="tipo">
-  <option>VIP</option>
-  <option>General</option>
-</select>
-<button onclick="registrar()">Registrar</button>
+<form id="registerForm">
+  <h2>Registro Oficial de Acceso</h2>
 
-<script>
-async function registrar() {
-  const res = await fetch("/api/clientes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      nombre: nombre.value,
-      email: email.value,
-      tipo: tipo.value
-    })
-  });
+  <input type="text" id="nombre" placeholder="Nombre completo" required>
+  <input type="email" id="email" placeholder="Correo electrónico" required>
+  <input type="tel" id="telefono" placeholder="Teléfono" required>
 
-  const data = await res.json();
-  alert("ID del cliente: " + data.id);
-}
-</script>
+  <select id="tipo" required>
+    <option value="">Tipo de cliente</option>
+    <option value="VIP">VIP</option>
+    <option value="GENERAL">General</option>
+    <option value="STAFF">Staff</option>
+  </select>
+
+  <label>
+    <input type="checkbox" required>
+    Acepto el uso de mis datos para control de acceso y premios
+  </label>
+
+  <button type="submit">Enviar</button>
+</form>

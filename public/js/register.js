@@ -1,36 +1,24 @@
-const form = document.getElementById("formRegistro");
-const mensaje = document.getElementById("mensaje");
-
-form.addEventListener("submit", async (e) => {
+document.getElementById("registerForm").addEventListener("submit", async e => {
   e.preventDefault();
 
-  mensaje.innerText = "Registrando...";
-  mensaje.className = "msg";
+  const data = {
+    nombre: nombre.value,
+    email: email.value,
+    telefono: telefono.value,
+    tipo: tipo.value
+  };
 
-  const nombre = document.getElementById("nombre").value.trim();
-  const documento = document.getElementById("documento").value.trim();
-  const tipo = document.getElementById("tipo").value;
+  const res = await fetch("/api/clientes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
 
-  try {
-    const res = await fetch("/api/registrar-cliente", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre, documento, tipo })
-    });
+  const r = await res.json();
 
-    const data = await res.json();
-
-    if (data.ok) {
-      mensaje.innerText = "✅ Cliente registrado correctamente";
-      mensaje.className = "msg ok";
-      form.reset();
-    } else {
-      mensaje.innerText = "❌ " + data.error;
-      mensaje.className = "msg error";
-    }
-
-  } catch (err) {
-    mensaje.innerText = "❌ Error de conexión con el servidor";
-    mensaje.className = "msg error";
+  if (r.ok) {
+    alert("Registro completado");
+  } else {
+    alert("Error en el registro");
   }
 });

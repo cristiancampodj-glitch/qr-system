@@ -1,54 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mi Pase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/home.css">
+</head>
+
 <body>
-  <div class="app">
-    
-    <aside class="sidebar">
-      <div class="logo">🎧 Mi Pase</div>
 
-      <nav>
-        <a class="active">🏠 Inicio</a>
-        <a>🎟️ Mi Pase</a>
-        <a>📅 Eventos</a>
-        <a>📻 Emisora</a>
-        <a>🏆 Premios</a>
-      </nav>
+<div class="app">
 
-      <div class="evento">
-        🔥 Próximo evento<br>
-        <small>DJ Internacional</small>
-      </div>
-    </aside>
+  <!-- HEADER -->
+  <header class="header">
+    <img src="assets/logo.png" class="logo">
+    <div>
+      <h1 id="nombre">Hola 👋</h1>
+      <span id="tipo" class="badge">VIP</span>
+    </div>
+  </header>
 
-    <main class="content">
-      <h1>Hola 👋</h1>
+  <!-- CARD -->
+  <section class="card">
+    <h2>Tu Pase Digital</h2>
 
-      <div class="cards">
-        <div class="card">
-          <h3>🎟️ Tu Pase</h3>
-          <p>Estado: <span class="ok">Activo</span></p>
-          <p>Paros: 0</p>
-        </div>
+    <div class="qr-box">
+      <img id="qr" alt="QR">
+    </div>
 
-        <div class="card">
-          <h3>📅 Eventos</h3>
-          <p>Consulta próximos eventos</p>
-        </div>
+    <div class="points">
+      <span>PARÖS</span>
+      <strong id="puntos">0</strong>
+    </div>
 
-        <div class="card">
-          <h3>🏆 Premios</h3>
-          <p>Beneficios disponibles</p>
-        </div>
-          <div class="qr-container">
-    <h2>Tu Código QR Personal</h2>
-    <img id="qr" src="" alt="Código QR">
-    <p>Muestra este código en la entrada del evento.</p>
-  </div>
-      </div>
-    </main>
+    <span class="status active">ACTIVO</span>
+  </section>
 
-  </div>
+  <!-- MODULOS -->
+  <section class="modules">
+    <div>🎉<span>Eventos</span></div>
+    <div>🎟️<span>Mi Pase</span></div>
+    <div>📻<span>Emisora</span></div>
+    <div>🎁<span>Premios</span></div>
+  </section>
+
+  <!-- BANNER -->
+  <section class="banner">
+    <strong>🔥 Próximo evento</strong>
+    <p>Este viernes · DJ Internacional</p>
+  </section>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <span>🏠</span>
+    <span>🎉</span>
+    <span>🔲</span>
+    <span>👤</span>
+  </nav>
+
+</div>
+
+<script src="js/home.js"></script>
 </body>
-  <div class="qr-container">
-    <h2>Tu Código QR Personal</h2>
-    <img id="qr" src="" alt="Código QR">
-    <p>Muestra este código en la entrada del evento.</p>
-  </div>
+</html>
