@@ -7,7 +7,7 @@
   <style>
     /* Estilos de la forma de registro */
     .form-register {
-      background-color: #1e1e1e; /* fondo oscuro como tu otra interfaz */
+      background-color: #1e1e1e; /* fondo oscuro */
       color: #fff;
       max-width: 400px;
       margin: 40px auto;
@@ -21,6 +21,12 @@
       text-align: center;
       margin-bottom: 20px;
       color: #fff;
+    }
+
+    .form-register h3 {
+      font-size: 14px;
+      margin-bottom: 20px;
+      color: #ccc;
     }
 
     .form-register input,
@@ -43,7 +49,7 @@
       width: 100%;
       padding: 12px;
       margin-top: 15px;
-      background-color: #8a5de8; /* morado como tu UI */
+      background-color: #8a5de8;
       border: none;
       border-radius: 8px;
       color: #fff;
@@ -66,11 +72,34 @@
     .checkbox-label input {
       margin-right: 8px;
     }
+
+    /* Estilos de preview de imagen */
+    .image-preview {
+      margin: 10px 0;
+      display: none;
+    }
+
+    .image-preview img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 5px;
+      border: 2px solid #8a5de8;
+    }
+
+    label {
+      margin-top: 10px;
+      display: block;
+      font-weight: bold;
+      font-size: 14px;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
   <form id="registerForm" class="form-register">
     <h2>Registro Oficial de Acceso</h2>
+    <h3>Registro permite acceder a eventos privados, beneficios exclusivos y sistema de sorteos de GRUPÖ PARÖLE.
+    El acceso es personal e intransferible. Al registrarte, aceptas el uso de tus datos únicamente para control de acceso, premios y comunicación del evento.</h3>
 
     <input type="text" id="nombre" placeholder="Nombre completo" required>
     <input type="email" id="email" placeholder="Correo electrónico" required>
@@ -78,10 +107,25 @@
 
     <select id="tipo" required>
       <option value="">Tipo de cliente</option>
+      <option value="Cliente">Cliente</option>
       <option value="VIP">VIP</option>
-      <option value="GENERAL">General</option>
-      <option value="STAFF">Staff</option>
+      <option value="UNIVERSITARIO">Universitario</option>
+      <option value="FUERZAS">Fuerzas de Seguridad</option>
     </select>
+
+    <!-- Campo para foto de documento de identidad -->
+    <label for="docFoto">Foto del Documento de Identidad:</label>
+    <input type="file" id="docFoto" accept="image/*" capture="environment" required>
+    <div class="image-preview" id="docPreview">
+      <img src="" alt="Preview Documento">
+    </div>
+
+    <!-- Campo para selfie -->
+    <label for="selfie">Selfie para verificación:</label>
+    <input type="file" id="selfie" accept="image/*" capture="user" required>
+    <div class="image-preview" id="selfiePreview">
+      <img src="" alt="Preview Selfie">
+    </div>
 
     <label class="checkbox-label">
       <input type="checkbox" required>
@@ -90,5 +134,47 @@
 
     <button type="submit">Crear</button>
   </form>
+
+  <script>
+    // Función para mostrar preview de imagen
+    function previewImage(input, previewId) {
+      const previewDiv = document.getElementById(previewId);
+      const previewImg = previewDiv.querySelector('img');
+
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+          previewDiv.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+      } else {
+        previewDiv.style.display = 'none';
+        previewImg.src = '';
+      }
+    }
+
+    document.getElementById('docFoto').addEventListener('change', function() {
+      previewImage(this, 'docPreview');
+    });
+
+    document.getElementById('selfie').addEventListener('change', function() {
+      previewImage(this, 'selfiePreview');
+    });
+
+    // Validar que ambos campos de imagen estén llenos antes de enviar
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      const docFoto = document.getElementById('docFoto').files.length;
+      const selfie = document.getElementById('selfie').files.length;
+
+      if (!docFoto || !selfie) {
+        alert('Por favor, sube tanto la foto del documento como la selfie.');
+        e.preventDefault();
+      } else {
+        alert('Formulario enviado correctamente.');
+        // Aquí puedes agregar el código para enviar el formulario a tu servidor
+      }
+    });
+  </script>
 </body>
 </html>
