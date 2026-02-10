@@ -1,24 +1,35 @@
-document.getElementById("registerForm").addEventListener("submit", async e => {
+const form = document.getElementById('registerForm');
+
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const data = {
-    nombre: nombre.value,
-    email: email.value,
-    telefono: telefono.value,
-    tipo: tipo.value
-  };
+  const nombre = document.getElementById('nombre').value;
+  const email = document.getElementById('email').value;
+  const telefono = document.getElementById('telefono').value;
+  const tipo = document.getElementById('tipo').value;
 
-  const res = await fetch("/api/clientes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
+  // Generar clave de acceso aleatoria
+  const clave = Math.random().toString(36).slice(-8); // 8 caracteres alfanuméricos
 
-  const r = await res.json();
+  const data = { nombre, email, telefono, tipo, clave };
 
-  if (r.ok) {
-    alert("Registro completado");
-  } else {
-    alert("Error en el registro");
+  try {
+    const response = await fetch('/api/crear-usuario', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    if(result.success){
+      alert(`Usuario creado con éxito!\nClave: ${clave}`);
+      form.reset();
+    } else {
+      alert('Error al crear usuario');
+    }
+
+  } catch(err){
+    console.error(err);
+    alert('Error de conexión con el servidor');
   }
 });

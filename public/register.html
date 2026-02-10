@@ -1,21 +1,94 @@
-<form id="registerForm">
-  <h2>Registro Oficial de Acceso</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro Oficial de Acceso</title>
+  <style>
+    /* Estilos de la forma de registro */
+    .form-register {
+      background-color: #1e1e1e; /* fondo oscuro como tu otra interfaz */
+      color: #fff;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      font-family: 'Arial', sans-serif;
+    }
 
-  <input type="text" id="nombre" placeholder="Nombre completo" required>
-  <input type="email" id="email" placeholder="Correo electrónico" required>
-  <input type="tel" id="telefono" placeholder="Teléfono" required>
+    .form-register h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #fff;
+    }
 
-  <select id="tipo" required>
-    <option value="">Tipo de cliente</option>
-    <option value="VIP">VIP</option>
-    <option value="GENERAL">General</option>
-    <option value="STAFF">Staff</option>
-  </select>
+    .form-register input,
+    .form-register select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
 
-  <label>
-    <input type="checkbox" required>
-    Acepto el uso de mis datos para control de acceso y premios
-  </label>
+    .form-register select {
+      background-color: #2a2a2a;
+      color: #fff;
+    }
 
-  <button type="submit">Enviar</button>
-</form>
+    .form-register button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      background-color: #8a5de8; /* morado como tu UI */
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .form-register button:hover {
+      background-color: #7a4cd8;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .checkbox-label input {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <form id="registerForm" class="form-register">
+    <h2>Registro Oficial de Acceso</h2>
+
+    <input type="text" id="nombre" placeholder="Nombre completo" required>
+    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <input type="tel" id="telefono" placeholder="Teléfono" required>
+
+    <select id="tipo" required>
+      <option value="">Tipo de cliente</option>
+      <option value="VIP">VIP</option>
+      <option value="GENERAL">General</option>
+      <option value="STAFF">Staff</option>
+    </select>
+
+    <label class="checkbox-label">
+      <input type="checkbox" required>
+      Acepto el uso de mis datos para control de acceso y premios
+    </label>
+
+    <button type="submit">Crear</button>
+  </form>
+</body>
+</html>
