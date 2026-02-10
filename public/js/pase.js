@@ -1,33 +1,36 @@
-const token = window.location.pathname.split("/").pop();
+const params = new URLSearchParams(location.search);
+const clienteId = params.get("id");
 
-fetch(`/api/pase/${token}`)
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("nombre").innerText = data.nombre;
-    document.getElementById("tipo").innerText = "Tipo: " + data.tipo;
-    document.getElementById("puntos").innerText = "Puntos: " + data.puntos;
-  })
-  .catch(() => {
-    document.body.innerHTML = "<h2>Pase no válido</h2>";
+async function cargarCliente() {
+  const res = await fetch(`/api/cliente/${clienteId}`);
+  const data = await res.json();
+
+  nombre.innerText = data.nombre;
+  tipo.innerText = data.tipo;
+  puntos.innerText = data.puntos;
+}
+
+async function generarQR() {
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+  const res = await fetch(`/api/qr/generar/${clienteId}`, {
+    method: "POST"
   });
-const token = window.location.pathname.split("/").pop();
 
-fetch(`/api/pase/${token}`)
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) {
-      document.body.innerHTML = "<h2>Pase no válido</h2>";
-      return;
-    }
+  const data = await res.json();
 
-    document.getElementById("nombre").textContent = data.nombre;
-    document.getElementById("tipo").textContent = data.tipo;
-    document.getElementById("puntos").textContent = data.puntos;
-
-    document.getElementById("qr").src =
-      "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
-      encodeURIComponent(token);
-  })
-  .catch(() => {
-    document.body.innerHTML = "<h2>Error de conexión</h2>";
+  qr.innerHTML = "";
+  new QRCode(qr, {
+    text: data.qrUrl,
+    width: 180,
+    height: 180,
+    colorDark: "#fff",
+    colorLight: "#000"
   });
+
+  setTimeout(() => {
+    qr.innerHTML = "⏳ QR expirado";
+  }, 60000);
+}
+
+cargarCliente();

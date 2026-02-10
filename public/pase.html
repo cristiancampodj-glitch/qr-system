@@ -2,17 +2,41 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Pase HALÖ</title>
+  <title>Pase Digital · Paröle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+
   <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 </head>
+
 <body>
 
-  <h1 id="nombre">Cargando...</h1>
-  <p id="tipo"></p>
-  <p>Puntos: <span id="puntos">0</span></p>
+<div class="card">
+  <div class="badge">ACTIVO</div>
 
-  <img id="qr" />
+  <div class="logo">🎧</div>
+  <div class="club">PARÖLE</div>
 
-  <script src="/js/pase.js"></script>
+  <div class="name" id="nombre">Cargando...</div>
+  <div class="type" id="tipo">—</div>
+
+  <div class="qr-box" id="qr"></div>
+
+  <div class="info">
+    <div>🎉 PARÖS: <strong id="puntos">0</strong></div>
+    <div>🎟️ Evento activo</div>
+  </div>
+
+  <button class="btn" onclick="generarQR()">
+    Mostrar Pase Digital
+  </button>
+
+  <div class="footer">
+    © 2026 Paröle Club
+  </div>
+</div>
+
+<script src="/js/pase.js"></script>
 </body>
 </html>

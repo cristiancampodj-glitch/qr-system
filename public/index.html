@@ -36,17 +36,18 @@
       margin-bottom: 30px;
     }
 
-    .card {
+    a.card {
+      display: block;
       background: #121212;
       border-radius: 14px;
       padding: 18px;
       margin-bottom: 15px;
-      cursor: pointer;
+      text-decoration: none;
+      color: white;
       transition: transform .15s ease, box-shadow .15s ease;
-      box-shadow: 0 0 0 rgba(0,0,0,0);
     }
 
-    .card:hover {
+    a.card:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(0,0,0,.6);
     }
@@ -77,40 +78,34 @@
     <h1>🎧 QR SYSTEM</h1>
     <div class="subtitle">Control de accesos · Barra · Clientes</div>
 
-    <!-- RRPP / REGISTRO -->
-    <div class="card" onclick="ir('register.html')">
+    <!-- REGISTRO -->
+    <a href="/register.html" class="card">
       <h2>📝 Registro de Clientes</h2>
       <p>RRPP – alta de militares, universitarios, VIP y staff</p>
-    </div>
+    </a>
 
-    <!-- SEGURIDAD -->
-    <div class="card" onclick="ir('validar-entrada.html')">
+    <!-- ENTRADA -->
+    <a href="/entrada.html" class="card">
       <h2>🛂 Control de Entrada</h2>
       <p>Seguridad – escaneo QR para acceso</p>
-    </div>
+    </a>
 
     <!-- BARRA -->
-    <div class="card" onclick="ir('validar-barra.html')">
+    <a href="/barra.html" class="card">
       <h2>🍸 Barra / Descuentos</h2>
       <p>Aplicar descuentos y sumar puntos</p>
-    </div>
+    </a>
 
     <!-- CLIENTE -->
-    <div class="card" onclick="alert('El acceso del cliente se hace con su QR personal')">
+    <a href="/pase.html?id=1" class="card">
       <h2>📱 Cliente</h2>
-      <p>Acceso solo desde enlace personal</p>
-    </div>
+      <p>Acceso desde su enlace personal</p>
+    </a>
 
     <div class="footer">
       Sistema interno · Uso autorizado
     </div>
   </div>
-
-<script>
-  function ir(ruta) {
-    window.location.href = ruta;
-  }
-</script>
 
 </body>
 </html>
