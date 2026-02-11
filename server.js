@@ -15,10 +15,23 @@ app.use(express.static("public")); // Sirve HTML, CSS, JS y Fotos subidas
 // CONFIGURACIÓN QR DINÁMICO (Cambia cada 15 segundos)
 authenticator.options = { step: 15, window: 1 }; 
 
-// CONEXIÓN BASE DE DATOS (Railway usa variables de entorno)
+// Reemplaza tu configuración de Pool por esta:
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  // Railway inyecta automáticamente esta variable en tu servicio
+  connectionString: process.env.DATABASE_URL, 
+  ssl: {
+    // Requerido para conexiones seguras en Railway
+    rejectUnauthorized: false 
+  }
+});
+
+// Agrega este log para confirmar la conexión en la consola de Railway
+pool.connect((err, client, release) => {
+  if (err) {
+    return console.error('❌ Error de conexión a la DB:', err.stack);
+  }
+  console.log('✅ Conexión a PostgreSQL establecida correctamente');
+  release();
 });
 
 // CONFIGURACIÓN DE ALMACENAMIENTO DE FOTOS
