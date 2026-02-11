@@ -39,16 +39,21 @@
     h2 { margin: 10px 0 5px; font-size: 24px; }
     p { color: #888; font-size: 14px; margin-bottom: 30px; }
 
+    .input-group {
+      position: relative;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
     input {
       width: 100%;
       padding: 14px;
-      margin-bottom: 15px;
       background: #2a2a2a;
       border: 1px solid #333;
       border-radius: 10px;
       color: white;
       font-size: 16px;
-      box-sizing: border-box; /* Para que el padding no rompa el ancho */
+      box-sizing: border-box;
       outline: none;
       transition: 0.3s;
     }
@@ -58,7 +63,21 @@
       background: #333;
     }
 
-    button {
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #8a5de8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0;
+    }
+
+    button.btn-login {
       width: 100%;
       padding: 14px;
       background: linear-gradient(135deg, #7b2cff, #a855f7);
@@ -72,7 +91,7 @@
       margin-top: 10px;
     }
 
-    button:active { transform: scale(0.98); }
+    button.btn-login:active { transform: scale(0.98); }
 
     .error {
       color: #ff6b6b;
@@ -96,15 +115,26 @@
 <body>
 
   <div class="login-card">
-    <img src="/assets/logo.jpeg" class="logo" alt="Logo">
+    <img src="/assets/logo.jpeg" class="logo" alt="Logo Paröle">
 
     <h2>Bienvenido</h2>
     <p>Accede a tu cuenta Paröle</p>
 
-    <input type="email" id="email" placeholder="Correo electrónico" required />
-    <input type="password" id="password" placeholder="Contraseña" required />
+    <div class="input-group">
+      <input type="email" id="email" placeholder="Correo electrónico" required />
+    </div>
 
-    <button onclick="login()">Entrar</button>
+    <div class="input-group">
+      <input type="password" id="password" placeholder="Contraseña" required />
+      <button type="button" class="toggle-password" onclick="togglePass()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+    </div>
+
+    <button class="btn-login" onclick="login()">Entrar</button>
 
     <div id="error" class="error"></div>
 
@@ -114,5 +144,12 @@
   </div>
 
   <script src="/js/login.js"></script>
+  <script>
+    // Función rápida para el ojito dentro del HTML
+    function togglePass() {
+      const passInput = document.getElementById("password");
+      passInput.type = passInput.type === "password" ? "text" : "password";
+    }
+  </script>
 </body>
 </html>

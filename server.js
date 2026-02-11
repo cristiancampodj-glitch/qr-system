@@ -40,16 +40,21 @@ app.get("/", (req, res) => {
 // --- 1. REGISTRO (CON FOTOS Y CONTRASEÑA PERSONALIZADA) ---
 app.post("/api/crear-usuario", upload.fields([{ name: 'docFoto' }, { name: 'selfie' }]), async (req, res) => {
   try {
+    // CORRECCIÓN: Usamos 'password' que es lo que envía el register.js actualizado
     const { nombre, email, telefono, tipo, password } = req.body;
     
+    if (!password) {
+      return res.status(400).json({ success: false, error: "La contraseña es requerida." });
+    }
+
     // Rutas de las imágenes guardadas
     const docPath = req.files['docFoto'] ? '/uploads/' + req.files['docFoto'][0].filename : null;
     const selfiePath = req.files['selfie'] ? '/uploads/' + req.files['selfie'][0].filename : null;
 
-    // Encriptamos la contraseña proporcionada por el usuario
+    // Encriptamos la contraseña
     const hash = await bcrypt.hash(password, 10);
     
-    // Generamos un secreto único para el TOTP de este usuario
+    // Generamos el secreto único para el TOTP
     const qrSecret = authenticator.generateSecret(); 
 
     const result = await pool.query(
@@ -91,15 +96,12 @@ app.get("/api/qr/live/:id", async (req, res) => {
     if (result.rows.length === 0) return res.status(404).send("Usuario no encontrado");
 
     const user = result.rows[0];
-    if (!user.qr_secret) return res.status(500).json({error: "Usuario sin configuración de seguridad"});
+    if (!user.qr_secret) return res.status(500).json({error: "Usuario sin secreto de seguridad"});
 
-    // Generamos token temporal de 6 dígitos
     const token = authenticator.generate(user.qr_secret);
-    
-    // El QR contiene: ID del usuario + el token actual
     const dataString = `${req.params.id}|${token}`;
-
     const qrImage = await QRCode.toDataURL(dataString);
+
     res.json({ qrImage, nombre: user.nombre });
   } catch (err) {
     res.status(500).json({ error: "Error generando código dinámico" });
@@ -109,23 +111,19 @@ app.get("/api/qr/live/:id", async (req, res) => {
 // --- 4. VALIDAR ENTRADA (SEGURIDAD) ---
 app.get("/api/entrada", async (req, res) => {
   const { codigo } = req.query; // Recibe "ID|TOKEN"
-  
   try {
     if (!codigo || !codigo.includes("|")) return res.json({ ok: false, msg: "QR no válido" });
 
     const [id, token] = codigo.split("|");
-
     const userResult = await pool.query("SELECT * FROM usuarios WHERE id = $1", [id]);
+    
     if (userResult.rows.length === 0) return res.json({ ok: false, msg: "Usuario inexistente" });
 
     const user = userResult.rows[0];
-
-    // Verificamos si el token es válido en este preciso momento (ventana de 15s)
     const isValid = authenticator.check(token, user.qr_secret);
 
     if (!isValid) return res.json({ ok: false, msg: "⛔ QR CADUCADO O INVÁLIDO" });
 
-    // Registro de entrada exitosa
     await pool.query("INSERT INTO historial_entradas (usuario_id) VALUES ($1)", [id]);
 
     res.json({ 
@@ -134,7 +132,6 @@ app.get("/api/entrada", async (req, res) => {
       tipo: user.rol, 
       foto: user.selfie_foto 
     });
-
   } catch (err) {
     res.json({ ok: false, msg: "Error al validar entrada" });
   }
