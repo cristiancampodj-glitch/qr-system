@@ -1,100 +1,82 @@
-// ===============================
-// validar-barra.js
-// Módulo de barra
-// ===============================
+const html5QrCode = new Html5Qrcode("reader");
+const readerDiv = document.getElementById("reader");
+const resultCard = document.getElementById("resultado-card");
+const contentExito = document.getElementById("contenido-exito");
+const contentError = document.getElementById("contenido-error");
 
-const readerId = "reader";
-const resultado = document.getElementById("resultado");
-const btnOtro = document.getElementById("btnOtro");
+// Elementos de texto
+const nombreTxt = document.getElementById("nombre-cliente");
+const puntosTxt = document.getElementById("puntos-total");
+const errorTxt = document.getElementById("error-txt");
 
-let qrScanner = null;
+let isScanning = true;
 
-// ===============================
-// Mostrar resultado visual
-// ===============================
-function mostrarResultado(html, ok = true) {
-  resultado.innerHTML = html;
-  resultado.className = "estado " + (ok ? "ok" : "error");
-  resultado.classList.remove("oculto");
-  btnOtro.classList.remove("oculto");
-}
-
-// ===============================
-// Iniciar cámara
-// ===============================
 function iniciarCamara() {
-  resultado.classList.add("oculto");
-  btnOtro.classList.add("oculto");
+    // Restaurar interfaz para escanear
+    resultCard.style.display = "none";
+    readerDiv.style.display = "block";
+    isScanning = true;
 
-  if (qrScanner) {
-    qrScanner.clear();
-  }
-
-  qrScanner = new Html5Qrcode(readerId);
-
-  qrScanner.start(
-    { facingMode: "environment" },
-    {
-      fps: 12,
-      qrbox: { width: 260, height: 260 }
-    },
-    onScanCorrecto,
-    onScanError
-  );
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onScanSuccess,
+        onScanFailure
+    ).catch(err => {
+        console.error("Error cámara:", err);
+        alert("Error al iniciar cámara. Revisa permisos.");
+    });
 }
 
-// ===============================
-// Al detectar QR correctamente
-// ===============================
-async function onScanCorrecto(textoQR) {
-  // Detenemos para evitar dobles lecturas
-  qrScanner.stop();
+async function onScanSuccess(decodedText, decodedResult) {
+    if (!isScanning) return;
+    isScanning = false;
 
-  let token = textoQR;
+    // Pausar cámara y mostrar "Procesando..."
+    html5QrCode.stop().then(async () => {
+        readerDiv.style.display = "none";
+        resultCard.style.display = "block";
+        
+        // Mostrar estado de carga temporalmente (opcional)
+        contentExito.style.display = "none";
+        contentError.style.display = "none";
+        
+        try {
+            // Enviamos el código escaneado (ID|TOKEN) al servidor
+            // El endpoint /api/barra en server.js ya sabe extraer el ID
+            const res = await fetch(`/api/barra?token=${encodeURIComponent(decodedText)}`);
+            const data = await res.json();
 
-  // Por si en el futuro el QR es URL
-  try {
-    const url = new URL(textoQR);
-    token = url.searchParams.get("token") || textoQR;
-  } catch {}
+            if (data.ok) {
+                // ✅ ÉXITO: Puntos sumados
+                contentExito.style.display = "block";
+                nombreTxt.innerText = data.perfil;
+                puntosTxt.innerText = data.puntos;
+            } else {
+                // ❌ ERROR
+                mostrarError(data.msg || "Usuario no encontrado");
+            }
 
-  try {
-    const res = await fetch(`/api/barra?token=${encodeURIComponent(token)}`);
-    const data = await res.json();
-
-    if (!data.ok) {
-      mostrarResultado("❌ QR no válido o cliente no ingresó", false);
-      return;
-    }
-
-    mostrarResultado(`
-      <div class="perfil">${data.perfil}</div>
-      <div class="detalle">
-        Descuento aplicado correctamente<br>
-        ⭐ Puntos acumulados: <b>${data.puntos}</b>
-      </div>
-    `, true);
-
-  } catch (err) {
-    mostrarResultado("❌ Error de conexión con el servidor", false);
-  }
+        } catch (error) {
+            console.error(error);
+            mostrarError("Error de conexión");
+        }
+    });
 }
 
-// ===============================
-// Errores de escaneo (silencioso)
-// ===============================
-function onScanError() {
-  // No hacemos nada, es normal mientras enfoca
+function mostrarError(msg) {
+    contentExito.style.display = "none";
+    contentError.style.display = "block";
+    errorTxt.innerText = msg;
 }
 
-// ===============================
-// Reiniciar lectura
-// ===============================
+function onScanFailure(error) {
+    // Ignoramos fallos de lectura mientras busca QR
+}
+
 function reiniciar() {
-  iniciarCamara();
+    iniciarCamara();
 }
 
-// ===============================
-// INIT
-// ===============================
-iniciarCamara();
+// Iniciar al cargar
+document.addEventListener('DOMContentLoaded', iniciarCamara);

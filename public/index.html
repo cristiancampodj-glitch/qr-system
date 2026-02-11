@@ -2,72 +2,131 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>QR System – Control Discoteca</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <title>Paröle Club · Acceso</title>
   <style>
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, #1a1a1a, #000);
-      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      font-family: 'Segoe UI', Arial, sans-serif;
       color: white;
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
     }
 
     .container {
       width: 100%;
-      max-width: 420px;
+      max-width: 400px;
       padding: 20px;
+      text-align: center;
+    }
+
+    /* Logo y Título */
+    .logo {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #8a5de8;
+      margin-bottom: 15px;
+      box-shadow: 0 0 20px rgba(138, 93, 232, 0.3);
     }
 
     h1 {
-      text-align: center;
-      margin-bottom: 10px;
-      font-size: 24px;
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
     }
 
     .subtitle {
-      text-align: center;
       font-size: 14px;
-      opacity: 0.7;
+      color: #888;
       margin-bottom: 30px;
     }
 
-    a.card {
+    /* Botones Principales */
+    .btn-main {
       display: block;
-      background: #121212;
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 15px;
+      background: linear-gradient(135deg, #7b2cff, #a855f7);
+      padding: 16px;
+      border-radius: 12px;
       text-decoration: none;
       color: white;
-      transition: transform .15s ease, box-shadow .15s ease;
-    }
-
-    a.card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0,0,0,.6);
-    }
-
-    .card h2 {
-      margin: 0 0 5px 0;
+      font-weight: bold;
       font-size: 18px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 15px rgba(138, 93, 232, 0.3);
+      transition: transform 0.2s;
     }
 
-    .card p {
-      margin: 0;
-      font-size: 13px;
-      opacity: .7;
+    .btn-main:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      display: block;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 14px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #ccc;
+      font-weight: 600;
+      margin-bottom: 30px;
+      transition: background 0.2s;
     }
+
+    .btn-secondary:hover { background: #333; color: white; }
+
+    /* Sección Staff */
+    .divider {
+      border-top: 1px solid #333;
+      margin: 20px 0;
+      position: relative;
+    }
+    
+    .divider-text {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #000;
+      padding: 0 10px;
+      color: #555;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .grid-staff {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .card-staff {
+      background: #111;
+      border: 1px solid #222;
+      padding: 15px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #aaa;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    .card-staff:hover {
+      border-color: #8a5de8;
+      color: white;
+    }
+
+    .card-staff span { display: block; font-size: 24px; margin-bottom: 5px; }
 
     .footer {
-      text-align: center;
-      font-size: 11px;
-      opacity: .4;
-      margin-top: 30px;
+      margin-top: 40px;
+      font-size: 12px;
+      color: #444;
     }
   </style>
 </head>
@@ -75,35 +134,40 @@
 <body>
 
   <div class="container">
-    <h1>🎧 QR SYSTEM</h1>
-    <div class="subtitle">Control de accesos · Barra · Clientes</div>
+    <img src="/assets/logo.jpeg" class="logo" alt="Logo Paröle">
+    
+    <h1>PARÖLE CLUB</h1>
+    <div class="subtitle">Sistema de Acceso & Rewards</div>
 
-    <!-- REGISTRO -->
-    <a href="/register.html" class="card">
-      <h2>📝 Registro de Clientes</h2>
-      <p>RRPP – alta de militares, universitarios, VIP y staff</p>
+    <a href="/login.html" class="btn-main">
+      🔑 Iniciar Sesión
+    </a>
+    
+    <a href="/register.html" class="btn-secondary">
+      📝 Crear Cuenta Nueva
     </a>
 
-    <!-- ENTRADA -->
-    <a href="/entrada.html" class="card">
-      <h2>🛂 Control de Entrada</h2>
-      <p>Seguridad – escaneo QR para acceso</p>
-    </a>
+    <div class="divider">
+      <span class="divider-text">Acceso Staff</span>
+    </div>
 
-    <!-- BARRA -->
-    <a href="/barra.html" class="card">
-      <h2>🍸 Barra / Descuentos</h2>
-      <p>Aplicar descuentos y sumar puntos</p>
-    </a>
-
-    <!-- CLIENTE -->
-    <a href="/pase.html?id=1" class="card">
-      <h2>📱 Cliente</h2>
-      <p>Acceso desde su enlace personal</p>
-    </a>
+    <div class="grid-staff">
+      <a href="/entrada.html" class="card-staff">
+        <span>🛡️</span>Seguridad
+      </a>
+      <a href="/barra.html" class="card-staff">
+        <span>🍸</span>Barra
+      </a>
+      <a href="/admin.html" class="card-staff">
+        <span>📈</span>Admin
+      </a>
+      <a href="/pase.html" class="card-staff">
+        <span>📱</span>Mi Pase
+      </a>
+    </div>
 
     <div class="footer">
-      Sistema interno · Uso autorizado
+      © 2026 Paröle System · Acceso Autorizado
     </div>
   </div>
 

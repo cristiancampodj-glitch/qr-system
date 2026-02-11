@@ -2,23 +2,115 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Iniciar sesión | EUON</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión · Paröle</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #000;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+
+    .login-card {
+      background: #1e1e1e;
+      padding: 40px 30px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(138, 93, 232, 0.15);
+      border: 1px solid #333;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #8a5de8;
+      margin-bottom: 15px;
+    }
+
+    h2 { margin: 10px 0 5px; font-size: 24px; }
+    p { color: #888; font-size: 14px; margin-bottom: 30px; }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 15px;
+      background: #2a2a2a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      box-sizing: border-box; /* Para que el padding no rompa el ancho */
+      outline: none;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #8a5de8;
+      background: #333;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #7b2cff, #a855f7);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin-top: 10px;
+    }
+
+    button:active { transform: scale(0.98); }
+
+    .error {
+      color: #ff6b6b;
+      font-size: 14px;
+      margin-top: 15px;
+      min-height: 20px;
+    }
+
+    .register-link {
+      margin-top: 25px;
+      font-size: 14px;
+      color: #aaa;
+    }
+    .register-link a {
+      color: #a855f7;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
 </head>
-<body class="login-body">
+<body>
 
   <div class="login-card">
-    <img src="/assets/logo.png" class="logo" />
+    <img src="/assets/logo.jpeg" class="logo" alt="Logo">
 
-    <h2>Iniciar sesión</h2>
-    <p>Acceso clientes y empleados</p>
+    <h2>Bienvenido</h2>
+    <p>Accede a tu cuenta Paröle</p>
 
-    <input type="email" id="email" placeholder="Correo electrónico" />
-    <input type="password" id="password" placeholder="Contraseña" />
+    <input type="email" id="email" placeholder="Correo electrónico" required />
+    <input type="password" id="password" placeholder="Contraseña" required />
 
     <button onclick="login()">Entrar</button>
 
     <div id="error" class="error"></div>
+
+    <div class="register-link">
+      ¿No tienes cuenta? <a href="/register.html">Regístrate aquí</a>
+    </div>
   </div>
 
   <script src="/js/login.js"></script>

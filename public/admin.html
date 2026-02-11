@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel Admin - QR System</title>
+  <style>
+    body { background: #111; color: white; font-family: sans-serif; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 600px; padding: 20px; }
+    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .stat-box { background: #2a2a2a; padding: 15px; border-radius: 8px; text-align: center; }
+    .stat-num { font-size: 24px; font-weight: bold; color: #a855f7; }
+    h2 { margin-top: 0; }
+    ul { list-style: none; padding: 0; }
+    li { background: #222; padding: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📈 Panel Administrador</h1>
+    
+    <div class="card">
+      <h2>Estadísticas Generales</h2>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-num" id="total-users">-</div>
+          <div>Usuarios Registrados</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="total-entradas">-</div>
+          <div>Han entrado hoy</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="total-consumos">-</div>
+          <div>Consumos Barra</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🏆 Top Clientes (Puntos)</h2>
+      <ul id="top-list">Cargando...</ul>
+    </div>
+  </div>
+
+  <script>
+    async function cargarStats() {
+      const res = await fetch('/api/admin/stats');
+      const data = await res.json();
+
+      document.getElementById('total-users').innerText = data.usuarios;
+      document.getElementById('total-entradas').innerText = data.entradas;
+      document.getElementById('total-consumos').innerText = data.consumos;
+
+      const list = document.getElementById('top-list');
+      list.innerHTML = '';
+      data.top.forEach(cliente => {
+        list.innerHTML += `<li><span>${cliente.nombre}</span> <span>⭐ ${cliente.puntos}</span></li>`;
+      });
+    }
+
+    cargarStats();
+    // Actualizar cada 10 segundos
+    setInterval(cargarStats, 10000);
+  </script>
+</body>
+</html>

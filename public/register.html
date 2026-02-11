@@ -115,14 +115,12 @@
       <option value="FUERZAS">Fuerzas y Cuerpos De Seguridad</option>
     </select>
 
-    <!-- Campo para foto de documento de identidad -->
     <label for="docFoto">Foto del Documento de Identidad:</label>
     <input type="file" id="docFoto" accept="image/*" capture="environment" required>
     <div class="image-preview" id="docPreview">
       <img src="" alt="Preview Documento">
     </div>
 
-    <!-- Campo para selfie -->
     <label for="selfie">Selfie para verificación:</label>
     <input type="file" id="selfie" accept="image/*" capture="user" required>
     <div class="image-preview" id="selfiePreview">
@@ -138,7 +136,7 @@
   </form>
 
   <script>
-    // Función para mostrar preview de imagen
+    // --- 1. PREVISUALIZACIÓN DE FOTOS ---
     function previewImage(input, previewId) {
       const previewDiv = document.getElementById(previewId);
       const previewImg = previewDiv.querySelector('img');
@@ -156,25 +154,62 @@
       }
     }
 
-    document.getElementById('docFoto').addEventListener('change', function() {
-      previewImage(this, 'docPreview');
-    });
+    document.getElementById('docFoto').addEventListener('change', function() { previewImage(this, 'docPreview'); });
+    document.getElementById('selfie').addEventListener('change', function() { previewImage(this, 'selfiePreview'); });
 
-    document.getElementById('selfie').addEventListener('change', function() {
-      previewImage(this, 'selfiePreview');
-    });
 
-    // Validar que ambos campos de imagen estén llenos antes de enviar
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-      const docFoto = document.getElementById('docFoto').files.length;
-      const selfie = document.getElementById('selfie').files.length;
+    // --- 2. ENVÍO DEL FORMULARIO AL SERVIDOR ---
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault(); // Evitamos que la página se recargue
 
-      if (!docFoto || !selfie) {
-        alert('Por favor, sube tanto la foto del documento como la selfie.');
-        e.preventDefault();
-      } else {
-        alert('Formulario enviado correctamente.');
-        // Aquí puedes agregar el código para enviar el formulario a tu servidor
+      const docFotoInput = document.getElementById('docFoto');
+      const selfieInput = document.getElementById('selfie');
+
+      // Validación extra
+      if (!docFotoInput.files.length || !selfieInput.files.length) {
+        alert('⚠️ Por favor, sube tanto la foto del documento como la selfie.');
+        return;
+      }
+
+      const btn = this.querySelector('button');
+      btn.innerText = "Subiendo fotos y creando usuario...";
+      btn.disabled = true;
+
+      // Usamos FormData para empaquetar texto + archivos
+      const formData = new FormData();
+      formData.append('nombre', document.getElementById('nombre').value);
+      formData.append('email', document.getElementById('email').value);
+      formData.append('telefono', document.getElementById('telefono').value);
+      formData.append('tipo', document.getElementById('tipo').value);
+      
+      // Generamos una clave temporal automáticamente
+      const claveGenerada = Math.random().toString(36).slice(-8);
+      formData.append('clave', claveGenerada);
+
+      // Adjuntamos los archivos
+      formData.append('docFoto', docFotoInput.files[0]);
+      formData.append('selfie', selfieInput.files[0]);
+
+      try {
+        const response = await fetch('/api/crear-usuario', {
+          method: 'POST',
+          body: formData 
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert(`✅ REGISTRO EXITOSO\n\nBienvenido/a. Ya puedes acceder.\n\nTu clave temporal es: ${claveGenerada}`);
+          window.location.href = '/login.html'; // Te enviamos al login
+        } else {
+          throw new Error(result.error || 'Error desconocido');
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error: ' + err.message);
+        btn.innerText = "Crear";
+        btn.disabled = false;
       }
     });
   </script>

@@ -2,184 +2,117 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Barra – Descuentos</title>
+  <title>Barra - Puntos y Consumo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Lector QR -->
   <script src="https://unpkg.com/html5-qrcode"></script>
-
   <style>
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, #1a1a1a, #000);
-      font-family: Arial, Helvetica, sans-serif;
+      background: #000; /* Fondo negro puro */
+      font-family: 'Segoe UI', Arial, sans-serif;
       color: white;
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
     }
 
     .pantalla {
       width: 100%;
-      max-width: 420px;
+      max-width: 450px;
       padding: 20px;
       text-align: center;
     }
 
-    h1 {
-      font-size: 22px;
-      margin-bottom: 10px;
-    }
+    h1 { margin: 0; font-size: 24px; margin-bottom: 5px; color: #fff; }
+    .sub { font-size: 14px; color: #888; margin-bottom: 20px; }
 
-    .sub {
-      font-size: 13px;
-      opacity: .7;
-      margin-bottom: 20px;
-    }
-
+    /* CÁMARA */
     #reader {
       width: 100%;
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
+      border: 2px solid #333;
+      background: #111;
       margin-bottom: 20px;
     }
 
-    .estado {
-      padding: 20px;
-      border-radius: 14px;
-      font-size: 18px;
-      margin-top: 10px;
+    /* TARJETA DE RESULTADO */
+    #resultado-card {
+      display: none;
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(138, 93, 232, 0.2); /* Resplandor morado */
+      border: 1px solid #333;
     }
 
-    .ok {
-      background: #064e3b;
-      color: #34d399;
-    }
+    /* Icono de Copa/Bebida */
+    .icon-drink { font-size: 50px; margin-bottom: 10px; display: block; }
 
-    .error {
-      background: #7f1d1d;
-      color: #fecaca;
-    }
-
-    .perfil {
-      font-size: 22px;
+    .nombre { font-size: 24px; font-weight: bold; margin: 10px 0; color: #fff; }
+    
+    .puntos-badge {
+      background: linear-gradient(135deg, #7b2cff, #a855f7);
+      padding: 8px 16px;
+      border-radius: 20px;
       font-weight: bold;
-      margin-bottom: 6px;
+      font-size: 18px;
+      display: inline-block;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 15px rgba(138, 93, 232, 0.4);
     }
 
-    .detalle {
-      font-size: 14px;
-      opacity: .85;
-    }
+    .msg-exito { color: #4ade80; font-size: 14px; margin-bottom: 20px; }
+    .msg-error { color: #f87171; font-weight: bold; font-size: 18px; margin-bottom: 20px; }
 
     button {
-      margin-top: 20px;
-      padding: 14px;
+      padding: 15px;
       width: 100%;
       border-radius: 12px;
       border: none;
-      background: linear-gradient(135deg, #7b2cff, #a855f7);
+      background: #333;
       color: white;
       font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
+      transition: 0.2s;
     }
+    button:hover { background: #444; }
 
-    button:hover {
-      opacity: .9;
-    }
-
-    .oculto {
-      display: none;
-    }
   </style>
 </head>
-
 <body>
 
 <div class="pantalla">
 
-  <h1>🍸 Barra</h1>
-  <div class="sub">Escanea el QR del cliente</div>
+  <h1>🍸 Zona de Barra</h1>
+  <div class="sub">Escanea para sumar puntos o canjear</div>
 
-  <!-- Cámara -->
   <div id="reader"></div>
 
-  <!-- Resultado -->
-  <div id="resultado" class="estado oculto"></div>
+  <div id="resultado-card">
+    <div id="contenido-exito">
+      <span class="icon-drink">🍹</span>
+      <div class="msg-exito">¡Consumición Registrada!</div>
+      <div class="nombre" id="nombre-cliente">Cliente</div>
+      <div class="puntos-badge">+10 Puntos</div>
+      <div style="color: #aaa; font-size: 14px;">Total actual: <strong id="puntos-total" style="color:white">0</strong></div>
+    </div>
 
-  <button id="btnOtro" class="oculto" onclick="reiniciar()">
-    Validar otro cliente
-  </button>
+    <div id="contenido-error" style="display:none">
+      <span class="icon-drink">❌</span>
+      <div class="msg-error" id="error-txt">Error</div>
+    </div>
+
+    <br>
+    <button onclick="reiniciar()">Siguiente Cliente</button>
+  </div>
 
 </div>
 
-<script>
-  const readerId = "reader";
-  const resultado = document.getElementById("resultado");
-  const btnOtro = document.getElementById("btnOtro");
-
-  let qr;
-
-  function mostrarResultado(html, ok = true) {
-    resultado.innerHTML = html;
-    resultado.className = "estado " + (ok ? "ok" : "error");
-    resultado.classList.remove("oculto");
-    btnOtro.classList.remove("oculto");
-  }
-
-  function iniciarCamara() {
-    resultado.classList.add("oculto");
-    btnOtro.classList.add("oculto");
-
-    qr = new Html5Qrcode(readerId);
-    qr.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      onScan
-    );
-  }
-
-  async function onScan(textoQR) {
-    qr.stop();
-
-    let token;
-    try {
-      // Si el QR es URL, extraemos token
-      const url = new URL(textoQR);
-      token = url.searchParams.get("token") || textoQR;
-    } catch {
-      token = textoQR;
-    }
-
-    try {
-      const res = await fetch(`/api/barra?token=${encodeURIComponent(token)}`);
-      const data = await res.json();
-
-      if (!data.ok) {
-        mostrarResultado("❌ QR no válido o cliente no ingresó", false);
-        return;
-      }
-
-      mostrarResultado(`
-        <div class="perfil">${data.perfil}</div>
-        <div class="detalle">
-          Descuento aplicado<br>
-          ⭐ Puntos totales: <b>${data.puntos}</b>
-        </div>
-      `, true);
-
-    } catch (e) {
-      mostrarResultado("❌ Error de conexión", false);
-    }
-  }
-
-  function reiniciar() {
-    iniciarCamara();
-  }
-
-  iniciarCamara();
-</script>
+<script src="/js/barra.js"></script>
 
 </body>
 </html>

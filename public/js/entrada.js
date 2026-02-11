@@ -1,94 +1,126 @@
 // ===============================
-// validar-entrada.js
-// Módulo de SEGURIDAD
+// CONFIGURACIÓN Y VARIABLES
 // ===============================
+const html5QrCode = new Html5Qrcode("reader");
+let isScanning = false;
 
-const readerId = "reader";
-const resultado = document.getElementById("resultado");
-const btnOtro = document.getElementById("btnOtro");
+// Elementos del DOM (Deben coincidir con tu HTML)
+const readerDiv = document.getElementById("reader");
+const resultadoCard = document.getElementById("resultado-card");
 
-let qrScanner = null;
-
-// ===============================
-// Mostrar resultado visual
-// ===============================
-function mostrarResultado(texto, ok = true) {
-  resultado.innerHTML = texto;
-  resultado.className = "estado " + (ok ? "ok" : "error");
-  resultado.classList.remove("oculto");
-  btnOtro.classList.remove("oculto");
-}
+const estadoMsg = document.getElementById("estado-msg");
+const fotoImg = document.getElementById("foto-img");
+const nombreTxt = document.getElementById("nombre-txt");
+const rolTxt = document.getElementById("rol-txt");
 
 // ===============================
-// Iniciar cámara
+// 1. INICIAR CÁMARA
 // ===============================
 function iniciarCamara() {
-  resultado.classList.add("oculto");
-  btnOtro.classList.add("oculto");
+    // Interfaz: Mostrar cámara, ocultar tarjeta
+    resultadoCard.style.display = "none";
+    readerDiv.style.display = "block";
+    isScanning = true;
 
-  if (qrScanner) {
-    qrScanner.clear();
-  }
+    // Configuración del escáner
+    const config = { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 } 
+    };
 
-  qrScanner = new Html5Qrcode(readerId);
-
-  qrScanner.start(
-    { facingMode: "environment" },
-    {
-      fps: 12,
-      qrbox: { width: 260, height: 260 }
-    },
-    onScanCorrecto,
-    onScanError
-  );
+    // Arrancamos la cámara trasera ("environment")
+    html5QrCode.start(
+        { facingMode: "environment" }, 
+        config, 
+        onScanSuccess, 
+        onScanFailure
+    ).catch(err => {
+        console.error("Error al iniciar cámara:", err);
+        alert("⚠️ No se puede acceder a la cámara. Verifica los permisos.");
+    });
 }
 
 // ===============================
-// QR detectado correctamente
+// 2. CUANDO DETECTA UN QR
 // ===============================
-async function onScanCorrecto(textoQR) {
-  // Detenemos lectura para evitar dobles validaciones
-  qrScanner.stop();
+function onScanSuccess(decodedText, decodedResult) {
+    if (!isScanning) return; 
+    isScanning = false; // Evitamos lecturas múltiples
 
-  let token = textoQR;
+    // 1. Detenemos la cámara momentáneamente
+    html5QrCode.stop().then(async () => {
+        
+        // 2. Interfaz: Ocultar cámara, mostrar "Cargando..."
+        readerDiv.style.display = "none";
+        resultadoCard.style.display = "block";
+        
+        estadoMsg.innerText = "⏳ Verificando...";
+        estadoMsg.className = "estado";
+        fotoImg.src = "assets/logo.jpeg"; // Imagen temporal mientras carga
+        nombreTxt.innerText = "---";
+        rolTxt.innerText = "---";
 
-  // Si el QR es URL, extraemos token
-  try {
-    const url = new URL(textoQR);
-    token = url.searchParams.get("token") || textoQR;
-  } catch {}
+        try {
+            // 3. ENVIAR AL SERVIDOR
+            // El servidor espera ?codigo=ID|TOKEN
+            const res = await fetch(`/api/entrada?codigo=${encodeURIComponent(decodedText)}`);
+            const data = await res.json();
 
-  try {
-    const res = await fetch(`/api/entrada?token=${encodeURIComponent(token)}`);
-    const data = await res.json();
+            // 4. MOSTRAR RESULTADO
+            if (data.ok) {
+                // ✅ ÉXITO
+                estadoMsg.innerText = "✅ ACCESO PERMITIDO";
+                estadoMsg.className = "estado valido";
+                
+                nombreTxt.innerText = data.nombre;
+                rolTxt.innerText = data.tipo || "CLIENTE";
+                
+                // Mostrar foto real del usuario (o placeholder si no tiene)
+                fotoImg.src = data.foto || "https://via.placeholder.com/150?text=Sin+Foto";
 
-    if (!data.ok) {
-      mostrarResultado("❌ ACCESO DENEGADO", false);
-      return;
-    }
+                // Opcional: Sonido de éxito
+                // new Audio('/assets/success.mp3').play().catch(e => {}); 
 
-    mostrarResultado("✅ ENTRADA PERMITIDA", true);
+            } else {
+                // ❌ ERROR (QR Caducado, falso, etc.)
+                mostrarError(data.msg || "QR INVÁLIDO");
+            }
 
-  } catch (err) {
-    mostrarResultado("❌ ERROR DE SISTEMA", false);
-  }
+        } catch (error) {
+            console.error("Error de red:", error);
+            mostrarError("ERROR DE CONEXIÓN");
+        }
+    }).catch(err => {
+        console.error("Error al detener cámara:", err);
+    });
 }
 
 // ===============================
-// Errores de escaneo (ignorar)
+// 3. MANEJO DE ERRORES
 // ===============================
-function onScanError() {
-  // Es normal mientras la cámara enfoca
+function onScanFailure(error) {
+    // Es normal que falle mientras busca un QR, no hacemos nada.
+}
+
+function mostrarError(mensaje) {
+    estadoMsg.innerText = "⛔ " + mensaje;
+    estadoMsg.className = "estado invalido";
+    nombreTxt.innerText = "Desconocido";
+    rolTxt.innerText = "---";
+    fotoImg.src = "https://via.placeholder.com/150/ff0000/ffffff?text=X";
+    
+    // Opcional: Sonido de error
+    // new Audio('/assets/error.mp3').play().catch(e => {});
 }
 
 // ===============================
-// Reiniciar validación
+// 4. REINICIAR (Botón "Siguiente")
 // ===============================
 function reiniciar() {
-  iniciarCamara();
+    iniciarCamara();
 }
 
 // ===============================
 // INIT
 // ===============================
-iniciarCamara();
+document.addEventListener('DOMContentLoaded', iniciarCamara);

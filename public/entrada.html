@@ -2,169 +2,206 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Control de Entrada</title>
+  <title>Control de Entrada - Seguridad</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Lector QR -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, #1a1a1a, #000);
-      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      font-family: 'Segoe UI', Arial, sans-serif;
       color: white;
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
     }
 
     .pantalla {
       width: 100%;
-      max-width: 420px;
+      max-width: 450px;
       padding: 20px;
       text-align: center;
+      box-sizing: border-box;
     }
 
-    h1 {
-      font-size: 22px;
-      margin-bottom: 6px;
-    }
+    h1 { margin: 0; font-size: 24px; color: #fff; }
+    .sub { font-size: 14px; color: #888; margin-bottom: 20px; }
 
-    .sub {
-      font-size: 13px;
-      opacity: .7;
-      margin-bottom: 20px;
-    }
-
+    /* Contenedor del scanner */
     #reader {
       width: 100%;
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
-      margin-bottom: 20px;
+      border: 2px solid #333;
+      background: #111;
     }
 
-    .estado {
-      padding: 22px;
-      border-radius: 14px;
-      font-size: 22px;
-      margin-top: 10px;
-      font-weight: bold;
+    /* Tarjeta de Resultado */
+    #resultado-card {
+      display: none; /* Oculto al inicio */
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      border: 1px solid #333;
+      margin-top: -20px; /* Superponer un poco */
+      position: relative;
+      z-index: 10;
     }
 
-    .ok {
-      background: #064e3b;
-      color: #34d399;
+    /* Foto del Usuario */
+    .foto-usuario {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #333;
+      margin-bottom: 15px;
+      background: #000;
     }
 
-    .error {
-      background: #7f1d1d;
-      color: #fecaca;
+    .nombre { font-size: 26px; font-weight: bold; margin: 10px 0 5px; }
+    .rol { 
+      background: #333; color: #aaa; 
+      padding: 4px 12px; border-radius: 12px; 
+      font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
     }
 
-    .perfil {
-      font-size: 26px;
-      margin-top: 8px;
-    }
+    /* Estados de acceso */
+    .estado { font-size: 22px; font-weight: bold; margin-bottom: 10px; padding: 10px; border-radius: 8px; }
+    .valido { color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; }
+    .invalido { color: #f87171; background: rgba(248, 113, 113, 0.1); border: 1px solid #f87171; }
 
+    /* Botón */
     button {
-      margin-top: 20px;
-      padding: 14px;
+      margin-top: 25px;
+      padding: 15px;
       width: 100%;
       border-radius: 12px;
       border: none;
-      background: linear-gradient(135deg, #7b2cff, #a855f7);
+      background: #8a5de8;
       color: white;
       font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
+      transition: transform 0.1s;
     }
+    button:active { transform: scale(0.98); }
 
-    .oculto {
-      display: none;
-    }
   </style>
 </head>
 
 <body>
 
 <div class="pantalla">
+  <h1>🛡️ Zona de Seguridad</h1>
+  <div class="sub">Sistema de Verificación Oficial</div>
 
-  <h1>🛂 Seguridad</h1>
-  <div class="sub">Escanea el QR del cliente</div>
-
-  <!-- Cámara -->
   <div id="reader"></div>
 
-  <!-- Resultado -->
-  <div id="resultado" class="estado oculto"></div>
+  <div id="resultado-card">
+    <div id="estado-msg" class="estado valido">ACCESO PERMITIDO</div>
+    
+    <img id="foto-img" src="" class="foto-usuario" alt="Foto Cliente">
+    
+    <div class="nombre" id="nombre-txt">Nombre Cliente</div>
+    <span class="rol" id="rol-txt">CLIENTE</span>
 
-  <!-- Botón -->
-  <button id="btnOtro" class="oculto" onclick="reiniciar()">
-    Validar otro
-  </button>
-
+    <button onclick="reiniciar()">Escanear Siguiente</button>
+  </div>
 </div>
 
 <script>
-  const readerId = "reader";
-  const resultado = document.getElementById("resultado");
-  const btnOtro = document.getElementById("btnOtro");
+  const html5QrCode = new Html5Qrcode("reader");
+  const resultadoCard = document.getElementById("resultado-card");
+  const readerDiv = document.getElementById("reader");
+  
+  // Elementos a rellenar
+  const estadoMsg = document.getElementById("estado-msg");
+  const nombreTxt = document.getElementById("nombre-txt");
+  const rolTxt = document.getElementById("rol-txt");
+  const fotoImg = document.getElementById("foto-img");
 
-  let qr;
-
-  function mostrarResultado(texto, ok = true) {
-    resultado.innerHTML = texto;
-    resultado.className = "estado " + (ok ? "ok" : "error");
-    resultado.classList.remove("oculto");
-    btnOtro.classList.remove("oculto");
-  }
+  let isScanning = true;
 
   function iniciarCamara() {
-    resultado.classList.add("oculto");
-    btnOtro.classList.add("oculto");
+    resultadoCard.style.display = "none";
+    readerDiv.style.display = "block";
+    isScanning = true;
 
-    qr = new Html5Qrcode(readerId);
-    qr.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      onScan
-    );
+    html5QrCode.start(
+      { facingMode: "environment" }, 
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      onScanSuccess,
+      onScanFailure
+    ).catch(err => {
+      console.error("Error al iniciar cámara", err);
+      alert("No se pudo acceder a la cámara. Revisa los permisos.");
+    });
   }
 
-  async function onScan(textoQR) {
-    qr.stop();
+  async function onScanSuccess(decodedText, decodedResult) {
+    if (!isScanning) return; // Evitar lecturas múltiples
+    isScanning = false;
 
-    let token;
-    try {
-      // Si el QR es una URL, extraemos el token
-      const url = new URL(textoQR);
-      token = url.searchParams.get("token") || textoQR;
-    } catch {
-      token = textoQR;
-    }
+    // Detenemos la cámara momentáneamente para procesar
+    html5QrCode.stop().then(async () => {
+        readerDiv.style.display = "none";
+        resultadoCard.style.display = "block";
+        
+        estadoMsg.innerText = "⏳ Verificando...";
+        estadoMsg.className = "estado";
+        fotoImg.src = "assets/logo.jpeg"; // Imagen de carga o logo por defecto
 
-    try {
-      const res = await fetch(`/api/entrada?token=${encodeURIComponent(token)}`);
-      const data = await res.json();
+        try {
+            // CONEXIÓN CON TU SERVIDOR NUEVO
+            const res = await fetch(`/api/entrada?codigo=${encodeURIComponent(decodedText)}`);
+            const data = await res.json();
 
-      if (!data.ok) {
-        mostrarResultado("❌ ACCESO DENEGADO", false);
-        return;
-      }
+            if (data.ok) {
+                // ✅ ACCESO PERMITIDO
+                estadoMsg.innerText = "✅ ACCESO PERMITIDO";
+                estadoMsg.className = "estado valido";
+                nombreTxt.innerText = data.nombre;
+                rolTxt.innerText = data.tipo || "CLIENTE";
+                
+                // Mostrar la foto del usuario (o una por defecto si no tiene)
+                fotoImg.src = data.foto || "https://via.placeholder.com/150?text=Sin+Foto";
+            } else {
+                // ❌ ERROR (QR Caducado, falso o usuario no existe)
+                mostrarError(data.msg || "QR INVÁLIDO");
+            }
 
-      mostrarResultado("✅ ENTRADA PERMITIDA", true);
+        } catch (error) {
+            console.error(error);
+            mostrarError("ERROR DE CONEXIÓN");
+        }
+    });
+  }
 
-    } catch (e) {
-      mostrarResultado("❌ ERROR DE SISTEMA", false);
-    }
+  function mostrarError(mensaje) {
+      estadoMsg.innerText = "⛔ " + mensaje;
+      estadoMsg.className = "estado invalido";
+      nombreTxt.innerText = "Desconocido";
+      rolTxt.innerText = "---";
+      fotoImg.src = "https://via.placeholder.com/150/ff0000/ffffff?text=X";
+  }
+
+  function onScanFailure(error) {
+    // El escáner falla frecuentemente cuando no ve un QR, es normal, no hacemos nada.
   }
 
   function reiniciar() {
     iniciarCamara();
   }
 
-  iniciarCamara();
+  // Arrancar al cargar
+  document.addEventListener('DOMContentLoaded', iniciarCamara);
+
 </script>
 
 </body>
