@@ -9,7 +9,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: #000; /* Fondo negro puro */
+      background: #000;
       font-family: 'Segoe UI', Arial, sans-serif;
       color: white;
       display: flex;
@@ -23,9 +23,10 @@
       max-width: 450px;
       padding: 20px;
       text-align: center;
+      box-sizing: border-box;
     }
 
-    h1 { margin: 0; font-size: 24px; margin-bottom: 5px; color: #fff; }
+    h1 { margin: 0; font-size: 24px; color: #fff; }
     .sub { font-size: 14px; color: #888; margin-bottom: 20px; }
 
     /* CÁMARA */
@@ -44,13 +45,11 @@
       background: #1e1e1e;
       padding: 30px;
       border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(138, 93, 232, 0.2); /* Resplandor morado */
+      box-shadow: 0 10px 40px rgba(138, 93, 232, 0.3);
       border: 1px solid #333;
     }
 
-    /* Icono de Copa/Bebida */
     .icon-drink { font-size: 50px; margin-bottom: 10px; display: block; }
-
     .nombre { font-size: 24px; font-weight: bold; margin: 10px 0; color: #fff; }
     
     .puntos-badge {
@@ -79,16 +78,14 @@
       cursor: pointer;
       transition: 0.2s;
     }
-    button:hover { background: #444; }
-
+    button:active { transform: scale(0.98); }
   </style>
 </head>
 <body>
 
 <div class="pantalla">
-
   <h1>🍸 Zona de Barra</h1>
-  <div class="sub">Escanea para sumar puntos o canjear</div>
+  <div class="sub">Escanea para sumar puntos por consumición</div>
 
   <div id="reader"></div>
 
@@ -103,13 +100,12 @@
 
     <div id="contenido-error" style="display:none">
       <span class="icon-drink">❌</span>
-      <div class="msg-error" id="error-txt">Error</div>
+      <div class="msg-error" id="error-txt">QR No Válido</div>
     </div>
 
     <br>
     <button onclick="reiniciar()">Siguiente Cliente</button>
   </div>
-
 </div>
 
 <script src="/js/barra.js"></script>

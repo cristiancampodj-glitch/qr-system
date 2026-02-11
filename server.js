@@ -4,46 +4,52 @@ const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 const path = require("path");
 const multer = require("multer");
-const { authenticator } = require("otplib"); // Para códigos de 15 segundos
-const QRCode = require("qrcode"); // Para dibujar el QR
+const { authenticator } = require("otplib"); // Para seguridad de 15 segundos
+const QRCode = require("qrcode"); // Para generar la imagen del QR
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public")); // Sirve tus archivos y las fotos
+app.use(express.static("public")); // Sirve HTML, CSS, JS y Fotos subidas
 
-// CONFIGURACIÓN QR DINÁMICO (15 SEGUNDOS)
+// CONFIGURACIÓN QR DINÁMICO (Cambia cada 15 segundos)
 authenticator.options = { step: 15, window: 1 }; 
 
-// CONEXIÓN BASE DE DATOS
+// CONEXIÓN BASE DE DATOS (Railway usa variables de entorno)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// SUBIDA DE ARCHIVOS (FOTOS)
+// CONFIGURACIÓN DE ALMACENAMIENTO DE FOTOS
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/uploads/'),
   filename: (req, file, cb) => {
-    // Nombre único para que no se sobrescriban
+    // Nombre único: fecha + nombre original limpio
     cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'));
   }
 });
 const upload = multer({ storage });
 
+// --- REDIRECCIÓN INICIAL ---
+// Al entrar a app.euontech.es, lo primero que verán será el Login
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 
-// --- 1. REGISTRO (CON FOTOS Y SECRETO DE SEGURIDAD) ---
+// --- 1. REGISTRO (CON FOTOS Y CONTRASEÑA PERSONALIZADA) ---
 app.post("/api/crear-usuario", upload.fields([{ name: 'docFoto' }, { name: 'selfie' }]), async (req, res) => {
   try {
-    const { nombre, email, telefono, tipo, clave } = req.body;
+    const { nombre, email, telefono, tipo, password } = req.body;
     
-    // Rutas de las fotos
+    // Rutas de las imágenes guardadas
     const docPath = req.files['docFoto'] ? '/uploads/' + req.files['docFoto'][0].filename : null;
     const selfiePath = req.files['selfie'] ? '/uploads/' + req.files['selfie'][0].filename : null;
 
-    const hash = await bcrypt.hash(clave || "123456", 10);
+    // Encriptamos la contraseña proporcionada por el usuario
+    const hash = await bcrypt.hash(password, 10);
     
-    // GENERAMOS EL SECRETO ÚNICO PARA ESTE USUARIO (Para que su QR sea único)
+    // Generamos un secreto único para el TOTP de este usuario
     const qrSecret = authenticator.generateSecret(); 
 
     const result = await pool.query(
@@ -54,9 +60,9 @@ app.post("/api/crear-usuario", upload.fields([{ name: 'docFoto' }, { name: 'self
 
     res.json({ success: true, id: result.rows[0].id });
   } catch (err) {
-    console.error("Error registro:", err);
-    if (err.code === '23505') return res.status(400).json({ success: false, error: "El correo ya existe." });
-    res.status(500).json({ success: false, error: "Error interno." });
+    console.error("Error en registro:", err);
+    if (err.code === '23505') return res.status(400).json({ success: false, error: "El correo ya está registrado." });
+    res.status(500).json({ success: false, error: "Error interno al registrar usuario." });
   }
 });
 
@@ -71,62 +77,55 @@ app.post("/api/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.json({ ok: false, error: "Contraseña incorrecta" });
 
+    // Enviamos datos básicos para redirección en el frontend
     res.json({ ok: true, user: { id: user.id, nombre: user.nombre, rol: user.rol } });
   } catch (err) {
-    res.status(500).json({ ok: false, error: "Error de servidor" });
+    res.status(500).json({ ok: false, error: "Error de servidor en el login" });
   }
 });
 
-// --- 3. GENERAR QR DINÁMICO (PARA EL PASE DEL CLIENTE) ---
+// --- 3. GENERAR QR DINÁMICO (PARA PASE CLIENTE) ---
 app.get("/api/qr/live/:id", async (req, res) => {
   try {
-    // Buscamos el secreto del usuario
     const result = await pool.query("SELECT qr_secret, nombre FROM usuarios WHERE id = $1", [req.params.id]);
     if (result.rows.length === 0) return res.status(404).send("Usuario no encontrado");
 
     const user = result.rows[0];
-    
-    // Si es un usuario viejo sin secreto, esto fallaría. (En producción habría que manejarlo)
-    if (!user.qr_secret) return res.status(500).json({error: "Usuario antiguo. Re-crear cuenta."});
+    if (!user.qr_secret) return res.status(500).json({error: "Usuario sin configuración de seguridad"});
 
-    // 1. Generamos el token temporal (Ej: "849201")
+    // Generamos token temporal de 6 dígitos
     const token = authenticator.generate(user.qr_secret);
     
-    // 2. Empaquetamos ID + TOKEN (Ej: "5|849201")
+    // El QR contiene: ID del usuario + el token actual
     const dataString = `${req.params.id}|${token}`;
 
-    // 3. Convertimos a imagen QR
     const qrImage = await QRCode.toDataURL(dataString);
-
     res.json({ qrImage, nombre: user.nombre });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error generando QR" });
+    res.status(500).json({ error: "Error generando código dinámico" });
   }
 });
 
-// --- 4. VALIDAR ENTRADA (PARA EL GUARDIA) ---
+// --- 4. VALIDAR ENTRADA (SEGURIDAD) ---
 app.get("/api/entrada", async (req, res) => {
-  const { codigo } = req.query; // Esperamos algo como "5|849201"
+  const { codigo } = req.query; // Recibe "ID|TOKEN"
   
   try {
-    if (!codigo || !codigo.includes("|")) return res.json({ ok: false, msg: "Formato QR Inválido" });
+    if (!codigo || !codigo.includes("|")) return res.json({ ok: false, msg: "QR no válido" });
 
-    const [id, token] = codigo.split("|"); // Separamos ID y Token
+    const [id, token] = codigo.split("|");
 
     const userResult = await pool.query("SELECT * FROM usuarios WHERE id = $1", [id]);
-    if (userResult.rows.length === 0) return res.json({ ok: false, msg: "Usuario no existe" });
+    if (userResult.rows.length === 0) return res.json({ ok: false, msg: "Usuario inexistente" });
 
     const user = userResult.rows[0];
 
-    // LA MAGIA: Verificamos si el token corresponde al secreto en este instante
+    // Verificamos si el token es válido en este preciso momento (ventana de 15s)
     const isValid = authenticator.check(token, user.qr_secret);
 
-    if (!isValid) {
-      return res.json({ ok: false, msg: "⛔ QR CADUCADO o FALSO" });
-    }
+    if (!isValid) return res.json({ ok: false, msg: "⛔ QR CADUCADO O INVÁLIDO" });
 
-    // Si es válido, registramos la entrada
+    // Registro de entrada exitosa
     await pool.query("INSERT INTO historial_entradas (usuario_id) VALUES ($1)", [id]);
 
     res.json({ 
@@ -137,15 +136,13 @@ app.get("/api/entrada", async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
-    res.json({ ok: false, msg: "Error de servidor" });
+    res.json({ ok: false, msg: "Error al validar entrada" });
   }
 });
 
-// --- 5. BARRA (PUNTOS) ---
+// --- 5. BARRA (PUNTOS POR CONSUMO) ---
 app.get("/api/barra", async (req, res) => {
     const { token } = req.query; 
-    // Si el lector lee el QR completo "ID|TOKEN", nos quedamos solo con el ID
     const userId = token.includes("|") ? token.split("|")[0] : token;
 
     try {
@@ -154,19 +151,13 @@ app.get("/api/barra", async (req, res) => {
       await pool.query("INSERT INTO historial_barra (usuario_id, producto, puntos_ganados) VALUES ($1, 'Consumición', $2)", [userId, puntosGanados]);
   
       const user = await pool.query("SELECT nombre, puntos FROM usuarios WHERE id = $1", [userId]);
-      
-      if(user.rows.length > 0) {
-        res.json({ ok: true, perfil: user.rows[0].nombre, puntos: user.rows[0].puntos });
-      } else {
-        res.json({ ok: false, msg: "Usuario no encontrado" });
-      }
+      res.json({ ok: true, perfil: user.rows[0].nombre, puntos: user.rows[0].puntos });
     } catch (err) {
-      console.error(err);
       res.json({ ok: false });
     }
 });
 
-// --- 6. ESTADÍSTICAS (ADMIN) ---
+// --- 6. ADMIN (ESTADÍSTICAS) ---
 app.get("/api/admin/stats", async (req, res) => {
   try {
     const totalUsuarios = await pool.query("SELECT COUNT(*) FROM usuarios WHERE rol NOT IN ('admin', 'seguridad', 'barra')");
@@ -181,9 +172,9 @@ app.get("/api/admin/stats", async (req, res) => {
       top: topClientes.rows
     });
   } catch (err) {
-    res.status(500).json({ error: "Error stats" });
+    res.status(500).json({ error: "Error obteniendo datos" });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor listo en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor Paröle activo en puerto ${PORT}`));

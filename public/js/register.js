@@ -1,45 +1,69 @@
 const form = document.getElementById('registerForm');
 
 form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Obtenemos los valores y quitamos espacios en blanco al inicio/final
-  const nombre = document.getElementById('nombre').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const telefono = document.getElementById('telefono').value.trim();
-  const tipo = document.getElementById('tipo').value; // Asegúrate que en HTML los values sean: 'admin', 'seguridad', 'barra', 'cliente'
+    // 1. Capturar elementos del DOM
+    const nombre = document.getElementById('nombre').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
+    const tipo = document.getElementById('tipo').value;
+    const password = document.getElementById('password').value; // Nueva contraseña del usuario
+    
+    const docFotoInput = document.getElementById('docFoto');
+    const selfieInput = document.getElementById('selfie');
 
-  // Validaciones básicas
-  if (!nombre || !email || !tipo) {
-    alert("Por favor completa los campos obligatorios.");
-    return;
-  }
-
-  // Generar clave de acceso aleatoria (para que el usuario pueda entrar)
-  const clave = Math.random().toString(36).slice(-8); // 8 caracteres alfanuméricos
-
-  const data = { nombre, email, telefono, tipo, clave };
-
-  try {
-    // Esta es la URL correcta que conecta con el server.js nuevo
-    const response = await fetch('/api/crear-usuario', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      // IMPORTANTE: Mostramos la clave al admin para que se la dé al usuario
-      alert(`✅ Usuario creado con éxito!\n\nEsta es su contraseña temporal:\n👉 ${clave}\n\nGuárdala o compártela con el usuario.`);
-      form.reset();
-    } else {
-      alert('❌ Error al crear usuario: ' + (result.error || 'Intenta de nuevo.'));
+    // 2. Validaciones básicas
+    if (!nombre || !email || !tipo || !password) {
+        alert("⚠️ Por favor completa todos los campos de texto.");
+        return;
     }
 
-  } catch (err) {
-    console.error(err);
-    alert('❌ Error de conexión con el servidor.');
-  }
+    if (!docFotoInput.files.length || !selfieInput.files.length) {
+        alert("⚠️ Es obligatorio subir la foto del documento y la selfie.");
+        return;
+    }
+
+    // 3. Preparar FormData (Necesario para enviar archivos/fotos)
+    const formData = new FormData();
+    formData.append('nombre', nombre);
+    formData.append('email', email);
+    formData.append('telefono', telefono);
+    formData.append('tipo', tipo);
+    formData.append('password', password); // Enviamos 'password' tal cual espera el server.js
+    
+    // Adjuntar archivos reales
+    formData.append('docFoto', docFotoInput.files[0]);
+    formData.append('selfie', selfieInput.files[0]);
+
+    const btn = form.querySelector('button');
+    btn.innerText = "⏳ Procesando registro...";
+    btn.disabled = true;
+
+    try {
+        // 4. Petición al servidor
+        // NOTA: No se usa 'Content-Type': 'application/json' porque FormData lo maneja solo
+        const response = await fetch('/api/crear-usuario', {
+            method: 'POST',
+            body: formData 
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(`✅ ¡Registro exitoso!\n\nBienvenido ${nombre}. Ahora puedes iniciar sesión con tu correo y contraseña.`);
+            form.reset();
+            window.location.href = '/login.html'; // Redirección automática
+        } else {
+            alert('❌ Error: ' + (result.error || 'No se pudo crear la cuenta.'));
+            btn.innerText = "Crear";
+            btn.disabled = false;
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert('❌ Error de conexión con el servidor.');
+        btn.innerText = "Crear";
+        btn.disabled = false;
+    }
 });

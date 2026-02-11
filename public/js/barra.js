@@ -1,82 +1,66 @@
-const html5QrCode = new Html5Qrcode("reader");
-const readerDiv = document.getElementById("reader");
-const resultCard = document.getElementById("resultado-card");
-const contentExito = document.getElementById("contenido-exito");
-const contentError = document.getElementById("contenido-error");
-
-// Elementos de texto
-const nombreTxt = document.getElementById("nombre-cliente");
-const puntosTxt = document.getElementById("puntos-total");
-const errorTxt = document.getElementById("error-txt");
-
+let html5QrCode;
 let isScanning = true;
 
-function iniciarCamara() {
-    // Restaurar interfaz para escanear
-    resultCard.style.display = "none";
+const readerDiv = document.getElementById("reader");
+const resultadoCard = document.getElementById("resultado-card");
+const nombreCliente = document.getElementById("nombre-cliente");
+const puntosTotal = document.getElementById("puntos-total");
+const contenidoExito = document.getElementById("contenido-exito");
+const contenidoError = document.getElementById("contenido-error");
+const errorTxt = document.getElementById("error-txt");
+
+function iniciarScanner() {
+    resultadoCard.style.display = "none";
     readerDiv.style.display = "block";
     isScanning = true;
+
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+    }
 
     html5QrCode.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
-        onScanSuccess,
-        onScanFailure
-    ).catch(err => {
-        console.error("Error cámara:", err);
-        alert("Error al iniciar cámara. Revisa permisos.");
-    });
+        onScanSuccess
+    ).catch(err => console.error("Error cámara", err));
 }
 
-async function onScanSuccess(decodedText, decodedResult) {
+async function onScanSuccess(decodedText) {
     if (!isScanning) return;
     isScanning = false;
 
-    // Pausar cámara y mostrar "Procesando..."
-    html5QrCode.stop().then(async () => {
-        readerDiv.style.display = "none";
-        resultCard.style.display = "block";
-        
-        // Mostrar estado de carga temporalmente (opcional)
-        contentExito.style.display = "none";
-        contentError.style.display = "none";
-        
-        try {
-            // Enviamos el código escaneado (ID|TOKEN) al servidor
-            // El endpoint /api/barra en server.js ya sabe extraer el ID
-            const res = await fetch(`/api/barra?token=${encodeURIComponent(decodedText)}`);
-            const data = await res.json();
+    await html5QrCode.stop();
+    readerDiv.style.display = "none";
+    resultadoCard.style.display = "block";
 
-            if (data.ok) {
-                // ✅ ÉXITO: Puntos sumados
-                contentExito.style.display = "block";
-                nombreTxt.innerText = data.perfil;
-                puntosTxt.innerText = data.puntos;
-            } else {
-                // ❌ ERROR
-                mostrarError(data.msg || "Usuario no encontrado");
-            }
+    try {
+        // El servidor espera el token completo (ID|TOKEN) o solo el ID
+        // Lo enviamos al endpoint de barra
+        const res = await fetch(`/api/barra?token=${encodeURIComponent(decodedText)}`);
+        const data = await res.json();
 
-        } catch (error) {
-            console.error(error);
-            mostrarError("Error de conexión");
+        if (data.ok) {
+            // ✅ Mostrar éxito
+            contenidoExito.style.display = "block";
+            contenidoError.style.display = "none";
+            nombreCliente.innerText = data.perfil;
+            puntosTotal.innerText = data.puntos;
+        } else {
+            // ❌ Mostrar error
+            contenidoExito.style.display = "none";
+            contenidoError.style.display = "block";
+            errorTxt.innerText = data.msg || "Error al procesar";
         }
-    });
-}
-
-function mostrarError(msg) {
-    contentExito.style.display = "none";
-    contentError.style.display = "block";
-    errorTxt.innerText = msg;
-}
-
-function onScanFailure(error) {
-    // Ignoramos fallos de lectura mientras busca QR
+    } catch (err) {
+        contenidoExito.style.display = "none";
+        contenidoError.style.display = "block";
+        errorTxt.innerText = "Error de conexión";
+    }
 }
 
 function reiniciar() {
-    iniciarCamara();
+    iniciarScanner();
 }
 
 // Iniciar al cargar
-document.addEventListener('DOMContentLoaded', iniciarCamara);
+document.addEventListener("DOMContentLoaded", iniciarScanner);

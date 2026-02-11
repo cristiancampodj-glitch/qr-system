@@ -1,13 +1,12 @@
 // ===============================
 // CONFIGURACIÓN Y VARIABLES
 // ===============================
-const html5QrCode = new Html5Qrcode("reader");
+let html5QrCode; // Definimos la variable fuera para poder reutilizarla
 let isScanning = false;
 
-// Elementos del DOM (Deben coincidir con tu HTML)
+// Elementos del DOM
 const readerDiv = document.getElementById("reader");
 const resultadoCard = document.getElementById("resultado-card");
-
 const estadoMsg = document.getElementById("estado-msg");
 const fotoImg = document.getElementById("foto-img");
 const nombreTxt = document.getElementById("nombre-txt");
@@ -17,18 +16,20 @@ const rolTxt = document.getElementById("rol-txt");
 // 1. INICIAR CÁMARA
 // ===============================
 function iniciarCamara() {
-    // Interfaz: Mostrar cámara, ocultar tarjeta
     resultadoCard.style.display = "none";
     readerDiv.style.display = "block";
     isScanning = true;
 
-    // Configuración del escáner
+    // Si no existe la instancia, la creamos
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+    }
+
     const config = { 
         fps: 10, 
         qrbox: { width: 250, height: 250 } 
     };
 
-    // Arrancamos la cámara trasera ("environment")
     html5QrCode.start(
         { facingMode: "environment" }, 
         config, 
@@ -36,91 +37,76 @@ function iniciarCamara() {
         onScanFailure
     ).catch(err => {
         console.error("Error al iniciar cámara:", err);
-        alert("⚠️ No se puede acceder a la cámara. Verifica los permisos.");
+        alert("⚠️ Verifica que has dado permisos de cámara a app.euontech.es");
     });
 }
 
 // ===============================
 // 2. CUANDO DETECTA UN QR
 // ===============================
-function onScanSuccess(decodedText, decodedResult) {
+async function onScanSuccess(decodedText) {
     if (!isScanning) return; 
-    isScanning = false; // Evitamos lecturas múltiples
+    isScanning = false; 
 
-    // 1. Detenemos la cámara momentáneamente
-    html5QrCode.stop().then(async () => {
+    try {
+        // Detenemos la cámara antes de procesar para mejorar rendimiento en móviles
+        await html5QrCode.stop();
         
-        // 2. Interfaz: Ocultar cámara, mostrar "Cargando..."
         readerDiv.style.display = "none";
         resultadoCard.style.display = "block";
         
-        estadoMsg.innerText = "⏳ Verificando...";
+        estadoMsg.innerText = "⏳ Verificando en base de datos...";
         estadoMsg.className = "estado";
-        fotoImg.src = "assets/logo.jpeg"; // Imagen temporal mientras carga
-        nombreTxt.innerText = "---";
-        rolTxt.innerText = "---";
+        fotoImg.src = "/assets/logo.jpeg"; 
 
-        try {
-            // 3. ENVIAR AL SERVIDOR
-            // El servidor espera ?codigo=ID|TOKEN
-            const res = await fetch(`/api/entrada?codigo=${encodeURIComponent(decodedText)}`);
-            const data = await res.json();
+        // 3. ENVIAR AL SERVIDOR (Validación TOTP 15s)
+        const res = await fetch(`/api/entrada?codigo=${encodeURIComponent(decodedText)}`);
+        const data = await res.json();
 
-            // 4. MOSTRAR RESULTADO
-            if (data.ok) {
-                // ✅ ÉXITO
-                estadoMsg.innerText = "✅ ACCESO PERMITIDO";
-                estadoMsg.className = "estado valido";
-                
-                nombreTxt.innerText = data.nombre;
-                rolTxt.innerText = data.tipo || "CLIENTE";
-                
-                // Mostrar foto real del usuario (o placeholder si no tiene)
-                fotoImg.src = data.foto || "https://via.placeholder.com/150?text=Sin+Foto";
+        // 4. MOSTRAR RESULTADO
+        if (data.ok) {
+            // ✅ ACCESO PERMITIDO (Token válido y ID existe)
+            estadoMsg.innerText = "✅ ACCESO PERMITIDO";
+            estadoMsg.className = "estado valido";
+            
+            nombreTxt.innerText = data.nombre;
+            rolTxt.innerText = data.tipo || "CLIENTE";
+            
+            // Usamos la foto del servidor o placeholder
+            fotoImg.src = data.foto || "https://via.placeholder.com/150?text=Sin+Foto";
 
-                // Opcional: Sonido de éxito
-                // new Audio('/assets/success.mp3').play().catch(e => {}); 
-
-            } else {
-                // ❌ ERROR (QR Caducado, falso, etc.)
-                mostrarError(data.msg || "QR INVÁLIDO");
-            }
-
-        } catch (error) {
-            console.error("Error de red:", error);
-            mostrarError("ERROR DE CONEXIÓN");
+        } else {
+            // ❌ ERROR (Token caducado, QR manipulado o usuario inexistente)
+            mostrarError(data.msg || "QR INVÁLIDO");
         }
-    }).catch(err => {
-        console.error("Error al detener cámara:", err);
-    });
+
+    } catch (error) {
+        console.error("Error en proceso de escaneo:", error);
+        mostrarError("ERROR DE CONEXIÓN");
+    }
 }
 
 // ===============================
 // 3. MANEJO DE ERRORES
 // ===============================
 function onScanFailure(error) {
-    // Es normal que falle mientras busca un QR, no hacemos nada.
+    // Silencioso: Fallos de lectura normales mientras busca el QR
 }
 
 function mostrarError(mensaje) {
     estadoMsg.innerText = "⛔ " + mensaje;
     estadoMsg.className = "estado invalido";
-    nombreTxt.innerText = "Desconocido";
+    nombreTxt.innerText = "---";
     rolTxt.innerText = "---";
     fotoImg.src = "https://via.placeholder.com/150/ff0000/ffffff?text=X";
-    
-    // Opcional: Sonido de error
-    // new Audio('/assets/error.mp3').play().catch(e => {});
 }
 
 // ===============================
-// 4. REINICIAR (Botón "Siguiente")
+// 4. REINICIAR
 // ===============================
 function reiniciar() {
     iniciarCamara();
 }
 
-// ===============================
-// INIT
-// ===============================
+// Iniciar automáticamente al cargar la web
 document.addEventListener('DOMContentLoaded', iniciarCamara);

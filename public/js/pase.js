@@ -1,63 +1,54 @@
-// Verificamos si hay usuario en el navegador
-const user = JSON.parse(localStorage.getItem("user"));
+// Obtener datos del usuario desde el localStorage
+const userData = JSON.parse(localStorage.getItem("user"));
 
-if (!user || !user.id) {
+if (!userData || !userData.id) {
     window.location.href = "/login.html";
 }
 
-// Elementos del DOM
 const nombreEl = document.getElementById("nombre");
 const tipoEl = document.getElementById("tipo");
 const puntosEl = document.getElementById("puntos");
 const qrImg = document.getElementById("qr-img");
 const timerBar = document.getElementById("timer-bar");
+const userPhoto = document.getElementById("user-photo");
 
-// --- 1. CARGAR DATOS DEL PERFIL (PUNTOS, ROL) ---
 async function cargarPerfil() {
     try {
-        const res = await fetch(`/api/cliente/${user.id}`);
+        const res = await fetch(`/api/cliente/${userData.id}`);
         const data = await res.json();
         
         if (data) {
             nombreEl.innerText = data.nombre;
-            tipoEl.innerText = data.tipo.toUpperCase();
+            tipoEl.innerText = data.tipo;
             puntosEl.innerText = data.puntos;
+            // Si el usuario tiene foto en la DB, la mostramos
+            if(data.selfie_foto) userPhoto.src = data.selfie_foto;
         }
-    } catch (error) {
-        console.error("Error cargando perfil:", error);
+    } catch (e) {
+        console.error("Error cargando perfil", e);
     }
 }
 
-// --- 2. CARGAR QR DINÁMICO (CADA 15s) ---
-async function actualizarQR() {
+async function refrescarQR() {
     try {
-        // Pedimos la imagen al servidor
-        const res = await fetch(`/api/qr/live/${user.id}`);
+        const res = await fetch(`/api/qr/live/${userData.id}`);
         const data = await res.json();
 
         if (data.qrImage) {
             qrImg.src = data.qrImage;
-            
-            // Reiniciar animación de la barra
-            resetTimerAnimation();
+            animarBarra();
         }
-    } catch (error) {
-        console.error("Error cargando QR:", error);
+    } catch (e) {
+        console.error("Error refrescando QR", e);
     }
 }
 
-// Función visual para la barra de tiempo
-function resetTimerAnimation() {
-    // Quitamos la transición para resetear a ancho completo instantáneamente
-    timerBar.style.transition = 'none';
-    timerBar.style.width = '100%';
-
-    // Forzamos un "reflow" para que el navegador se de cuenta del cambio
-    void timerBar.offsetWidth;
-
-    // Iniciamos la animación de vaciado (dura 15 segundos)
-    timerBar.style.transition = 'width 15s linear';
-    timerBar.style.width = '0%';
+function animarBarra() {
+    timerBar.style.transition = "none";
+    timerBar.style.width = "100%";
+    timerBar.offsetWidth; // Reflow
+    timerBar.style.transition = "width 15s linear";
+    timerBar.style.width = "0%";
 }
 
 function logout() {
@@ -65,9 +56,7 @@ function logout() {
     window.location.href = "/login.html";
 }
 
-// --- INICIO ---
-cargarPerfil();   // Carga datos fijos una vez
-actualizarQR();   // Carga el primer QR
-
-// Programar actualización cada 15 segundos
-setInterval(actualizarQR, 15000);
+// Iniciar
+cargarPerfil();
+refrescarQR();
+setInterval(refrescarQR, 15000);

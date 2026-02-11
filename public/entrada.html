@@ -42,13 +42,13 @@
 
     /* Tarjeta de Resultado */
     #resultado-card {
-      display: none; /* Oculto al inicio */
+      display: none;
       background: #1e1e1e;
       padding: 30px;
       border-radius: 20px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.5);
       border: 1px solid #333;
-      margin-top: -20px; /* Superponer un poco */
+      margin-top: -20px;
       position: relative;
       z-index: 10;
     }
@@ -59,7 +59,7 @@
       height: 150px;
       border-radius: 50%;
       object-fit: cover;
-      border: 4px solid #333;
+      border: 4px solid #8a5de8; /* Color de la marca */
       margin-bottom: 15px;
       background: #000;
     }
@@ -104,23 +104,23 @@
   <div id="reader"></div>
 
   <div id="resultado-card">
-    <div id="estado-msg" class="estado valido">ACCESO PERMITIDO</div>
+    <div id="estado-msg" class="estado">VERIFICANDO...</div>
     
     <img id="foto-img" src="" class="foto-usuario" alt="Foto Cliente">
     
-    <div class="nombre" id="nombre-txt">Nombre Cliente</div>
-    <span class="rol" id="rol-txt">CLIENTE</span>
+    <div class="nombre" id="nombre-txt">---</div>
+    <span class="rol" id="rol-txt">---</span>
 
     <button onclick="reiniciar()">Escanear Siguiente</button>
   </div>
 </div>
 
 <script>
-  const html5QrCode = new Html5Qrcode("reader");
+  // Usamos el ID del div "reader"
+  let html5QrCode;
   const resultadoCard = document.getElementById("resultado-card");
   const readerDiv = document.getElementById("reader");
   
-  // Elementos a rellenar
   const estadoMsg = document.getElementById("estado-msg");
   const nombreTxt = document.getElementById("nombre-txt");
   const rolTxt = document.getElementById("rol-txt");
@@ -132,6 +132,11 @@
     resultadoCard.style.display = "none";
     readerDiv.style.display = "block";
     isScanning = true;
+
+    // Reiniciamos la instancia si ya existe para evitar errores
+    if (!html5QrCode) {
+      html5QrCode = new Html5Qrcode("reader");
+    }
 
     html5QrCode.start(
       { facingMode: "environment" }, 
@@ -145,42 +150,41 @@
   }
 
   async function onScanSuccess(decodedText, decodedResult) {
-    if (!isScanning) return; // Evitar lecturas múltiples
+    if (!isScanning) return; 
     isScanning = false;
 
-    // Detenemos la cámara momentáneamente para procesar
+    // Detenemos el scanner para procesar
     html5QrCode.stop().then(async () => {
         readerDiv.style.display = "none";
         resultadoCard.style.display = "block";
         
         estadoMsg.innerText = "⏳ Verificando...";
         estadoMsg.className = "estado";
-        fotoImg.src = "assets/logo.jpeg"; // Imagen de carga o logo por defecto
+        fotoImg.src = "/assets/logo.jpeg"; 
 
         try {
-            // CONEXIÓN CON TU SERVIDOR NUEVO
+            // Enviamos el código (ID|TOKEN) al servidor
             const res = await fetch(`/api/entrada?codigo=${encodeURIComponent(decodedText)}`);
             const data = await res.json();
 
             if (data.ok) {
-                // ✅ ACCESO PERMITIDO
+                // ✅ ÉXITO
                 estadoMsg.innerText = "✅ ACCESO PERMITIDO";
                 estadoMsg.className = "estado valido";
                 nombreTxt.innerText = data.nombre;
                 rolTxt.innerText = data.tipo || "CLIENTE";
                 
-                // Mostrar la foto del usuario (o una por defecto si no tiene)
+                // Si la foto viene de la DB, la mostramos. Si no, placeholder.
                 fotoImg.src = data.foto || "https://via.placeholder.com/150?text=Sin+Foto";
             } else {
-                // ❌ ERROR (QR Caducado, falso o usuario no existe)
+                // ❌ ERROR
                 mostrarError(data.msg || "QR INVÁLIDO");
             }
-
         } catch (error) {
             console.error(error);
             mostrarError("ERROR DE CONEXIÓN");
         }
-    });
+    }).catch(err => console.error("Error al detener scanner", err));
   }
 
   function mostrarError(mensaje) {
@@ -192,16 +196,14 @@
   }
 
   function onScanFailure(error) {
-    // El escáner falla frecuentemente cuando no ve un QR, es normal, no hacemos nada.
+    // Normal durante el enfoque
   }
 
   function reiniciar() {
     iniciarCamara();
   }
 
-  // Arrancar al cargar
   document.addEventListener('DOMContentLoaded', iniciarCamara);
-
 </script>
 
 </body>

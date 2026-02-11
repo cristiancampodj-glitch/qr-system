@@ -3,105 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro Oficial de Acceso</title>
+  <title>Registro Oficial · Paröle</title>
   <style>
-    /* Estilos de la forma de registro */
+    /* Mantenemos tu base de diseño oscuro */
+    body { background-color: #000; color: #fff; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    
     .form-register {
-      background-color: #1e1e1e; /* fondo oscuro */
-      color: #fff;
+      background-color: #1e1e1e;
       max-width: 400px;
-      margin: 40px auto;
+      width: 90%;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      font-family: 'Arial', sans-serif;
     }
 
-    .form-register h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #fff;
-    }
+    .form-register h2 { text-align: center; margin-bottom: 10px; }
+    .form-register h3 { font-size: 13px; margin-bottom: 20px; color: #aaa; text-align: center; font-weight: normal; }
 
-    .form-register h3 {
-      font-size: 14px;
-      margin-bottom: 20px;
-      color: #ccc;
-    }
-
-    .form-register input,
-    .form-register select {
+    input, select {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
+      margin: 8px 0;
       border-radius: 8px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-
-    .form-register select {
+      border: 1px solid #333;
       background-color: #2a2a2a;
       color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
     }
 
-    .form-register button {
+    label { display: block; margin-top: 12px; font-size: 13px; color: #8a5de8; font-weight: bold; }
+
+    .image-preview { margin: 10px 0; display: none; text-align: center; }
+    .image-preview img { max-width: 100%; height: 120px; border-radius: 8px; border: 2px solid #8a5de8; object-fit: cover; }
+
+    button {
       width: 100%;
-      padding: 12px;
-      margin-top: 15px;
+      padding: 14px;
+      margin-top: 20px;
       background-color: #8a5de8;
       border: none;
       border-radius: 8px;
       color: #fff;
       font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
       transition: 0.3s;
     }
 
-    .form-register button:hover {
-      background-color: #7a4cd8;
-    }
+    button:hover { background-color: #7a4cd8; }
+    button:disabled { background-color: #444; cursor: not-allowed; }
 
-    .checkbox-label {
-      display: flex;
-      align-items: center;
-      font-size: 14px;
-      margin-top: 10px;
-    }
-
-    .checkbox-label input {
-      margin-right: 8px;
-    }
-
-    /* Estilos de preview de imagen */
-    .image-preview {
-      margin: 10px 0;
-      display: none;
-    }
-
-    .image-preview img {
-      max-width: 100%;
-      border-radius: 8px;
-      margin-top: 5px;
-      border: 2px solid #8a5de8;
-    }
-
-    label {
-      margin-top: 10px;
-      display: block;
-      font-weight: bold;
-      font-size: 14px;
-      color: #fff;
-    }
+    .checkbox-label { display: flex; align-items: center; font-size: 12px; margin-top: 15px; color: #ccc; }
+    .checkbox-label input { width: auto; margin-right: 10px; }
   </style>
 </head>
 <body>
+
   <form id="registerForm" class="form-register">
-    <h2>Registro Oficial de Acceso</h2>
-    <h3>
-      <p>Este registro permite acceder a eventos privados, beneficios exclusivos y sistema de sorteos de GRUPÖ PARÖLE.</p> 
-    <p>El acceso es personal e intransferible. Al registrarte, aceptas el uso de tus datos únicamente para control de acceso, premios y comunicación del evento.</p>
-  </h3>
+    <h2>Registro Oficial</h2>
+    <h3>Acceso personal e intransferible para eventos de GRUPÖ PARÖLE.</h3>
 
     <input type="text" id="nombre" placeholder="Nombre completo" required>
     <input type="email" id="email" placeholder="Correo electrónico" required>
@@ -112,27 +73,26 @@
       <option value="Cliente">Cliente</option>
       <option value="VIP">VIP</option>
       <option value="UNIVERSITARIO">Universitario</option>
-      <option value="FUERZAS">Fuerzas y Cuerpos De Seguridad</option>
+      <option value="FUERZAS">Fuerzas de Seguridad</option>
     </select>
 
-    <label for="docFoto">Foto del Documento de Identidad:</label>
-    <input type="file" id="docFoto" accept="image/*" capture="environment" required>
-    <div class="image-preview" id="docPreview">
-      <img src="" alt="Preview Documento">
-    </div>
+    <label>Tu contraseña de acceso:</label>
+    <input type="password" id="password" placeholder="Mínimo 6 caracteres" minlength="6" required>
 
-    <label for="selfie">Selfie para verificación:</label>
+    <label>Foto del Documento (DNI/Cédula):</label>
+    <input type="file" id="docFoto" accept="image/*" capture="environment" required>
+    <div class="image-preview" id="docPreview"><img src=""></div>
+
+    <label>Selfie de Verificación:</label>
     <input type="file" id="selfie" accept="image/*" capture="user" required>
-    <div class="image-preview" id="selfiePreview">
-      <img src="" alt="Preview Selfie">
-    </div>
+    <div class="image-preview" id="selfiePreview"><img src=""></div>
 
     <label class="checkbox-label">
       <input type="checkbox" required>
-      Acepto el uso de mis datos para control de acceso y premios
+      Acepto el uso de mis datos para control de acceso y premios.
     </label>
 
-    <button type="submit">Crear</button>
+    <button type="submit" id="btnSubmit">Crear Cuenta</button>
   </form>
 
   <script>
@@ -140,55 +100,36 @@
     function previewImage(input, previewId) {
       const previewDiv = document.getElementById(previewId);
       const previewImg = previewDiv.querySelector('img');
-
       if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = e => {
           previewImg.src = e.target.result;
           previewDiv.style.display = 'block';
         }
         reader.readAsDataURL(input.files[0]);
-      } else {
-        previewDiv.style.display = 'none';
-        previewImg.src = '';
       }
     }
 
     document.getElementById('docFoto').addEventListener('change', function() { previewImage(this, 'docPreview'); });
     document.getElementById('selfie').addEventListener('change', function() { previewImage(this, 'selfiePreview'); });
 
-
-    // --- 2. ENVÍO DEL FORMULARIO AL SERVIDOR ---
+    // --- 2. ENVÍO AL SERVIDOR ---
     document.getElementById('registerForm').addEventListener('submit', async function(e) {
-      e.preventDefault(); // Evitamos que la página se recargue
+      e.preventDefault();
 
-      const docFotoInput = document.getElementById('docFoto');
-      const selfieInput = document.getElementById('selfie');
-
-      // Validación extra
-      if (!docFotoInput.files.length || !selfieInput.files.length) {
-        alert('⚠️ Por favor, sube tanto la foto del documento como la selfie.');
-        return;
-      }
-
-      const btn = this.querySelector('button');
-      btn.innerText = "Subiendo fotos y creando usuario...";
+      const btn = document.getElementById('btnSubmit');
+      btn.innerText = "Registrando...";
       btn.disabled = true;
 
-      // Usamos FormData para empaquetar texto + archivos
       const formData = new FormData();
       formData.append('nombre', document.getElementById('nombre').value);
       formData.append('email', document.getElementById('email').value);
       formData.append('telefono', document.getElementById('telefono').value);
       formData.append('tipo', document.getElementById('tipo').value);
+      formData.append('password', document.getElementById('password').value); // Sincronizado con server.js
       
-      // Generamos una clave temporal automáticamente
-      const claveGenerada = Math.random().toString(36).slice(-8);
-      formData.append('clave', claveGenerada);
-
-      // Adjuntamos los archivos
-      formData.append('docFoto', docFotoInput.files[0]);
-      formData.append('selfie', selfieInput.files[0]);
+      formData.append('docFoto', document.getElementById('docFoto').files[0]);
+      formData.append('selfie', document.getElementById('selfie').files[0]);
 
       try {
         const response = await fetch('/api/crear-usuario', {
@@ -199,16 +140,16 @@
         const result = await response.json();
 
         if (result.success) {
-          alert(`✅ REGISTRO EXITOSO\n\nBienvenido/a. Ya puedes acceder.\n\nTu clave temporal es: ${claveGenerada}`);
-          window.location.href = '/login.html'; // Te enviamos al login
+          alert('✅ ¡Registro exitoso! Ya puedes iniciar sesión.');
+          window.location.href = '/login.html';
         } else {
-          throw new Error(result.error || 'Error desconocido');
+          alert('❌ Error: ' + (result.error || 'No se pudo completar el registro'));
+          btn.innerText = "Crear Cuenta";
+          btn.disabled = false;
         }
-
       } catch (err) {
-        console.error(err);
-        alert('❌ Error: ' + err.message);
-        btn.innerText = "Crear";
+        alert('❌ Error de conexión con el servidor.');
+        btn.innerText = "Crear Cuenta";
         btn.disabled = false;
       }
     });

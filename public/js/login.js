@@ -1,51 +1,54 @@
 async function login() {
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
-  const error = document.getElementById("error");
+  const errorElement = document.getElementById("error");
 
-  // Limpiamos errores previos
-  error.innerText = "";
+  // Limpiar mensajes de error previos
+  errorElement.innerText = "";
+
+  if (!email || !password) {
+    errorElement.innerText = "⚠️ Por favor, completa todos los campos.";
+    return;
+  }
 
   try {
-    const res = await fetch("/api/login", {
+    const response = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
     });
 
-    const data = await res.json();
+    const data = await response.json();
 
-    if (!data.ok) {
-      error.innerText = data.error || "Error de acceso (usuario o clave incorrectos)";
-      return;
-    }
+    if (data.ok) {
+      // Guardar información del usuario en el navegador
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-    // Guardamos los datos del usuario para usarlos en las otras páginas
-    localStorage.setItem("user", JSON.stringify(data.user));
+      // Lógica de redirección según el rol guardado en la DB
+      const rol = data.user.rol.toLowerCase();
 
-    // --- LÓGICA DE REDIRECCIÓN (CORREGIDA) ---
-    const rol = data.user.rol;
-
-    if (rol === "admin") {
-      window.location.href = "/admin.html";      // Panel Admin
-    } else if (rol === "seguridad") {
-      window.location.href = "/entrada.html";    // Escáner Seguridad
-    } else if (rol === "barra") {
-      window.location.href = "/barra.html";      // Escáner Barra
+      if (rol === "seguridad") {
+        window.location.href = "/entrada.html"; // Pantalla del guardia
+      } else if (rol === "barra") {
+        window.location.href = "/barra.html";   // Pantalla del camarero
+      } else if (rol === "admin") {
+        window.location.href = "/admin.html";   // Panel de estadísticas
+      } else {
+        window.location.href = "/pase.html";    // Pase digital del cliente
+      }
     } else {
-      // Clientes y VIPs van a su pase
-      window.location.href = "/pase.html"; 
+      // Mostrar error enviado por el servidor (ej: "Contraseña incorrecta")
+      errorElement.innerText = "❌ " + (data.error || "Error al iniciar sesión");
     }
-
   } catch (err) {
-    console.error(err);
-    error.innerText = "Error de conexión con el servidor.";
+    console.error("Error en login:", err);
+    errorElement.innerText = "❌ Error de conexión con el servidor.";
   }
 }
 
-// Opcional: Permitir entrar pulsando "Enter"
-document.addEventListener("keypress", function(event) {
-  if (event.key === "Enter") {
+// Permitir el inicio de sesión presionando la tecla 'Enter'
+document.addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
     login();
   }
 });
