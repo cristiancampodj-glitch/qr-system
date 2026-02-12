@@ -1,6 +1,5 @@
 const { Pool } = require("pg");
 
-// Usa la variable de entorno de Railway, o tu URL local para pruebas
 const connectionString = process.env.DATABASE_URL || "postgresql://postgres:nUhUiTIKWlqVoNjgkQBGEMPcEUlKqSxZ@hopper.proxy.rlwy.net:30867/railway"; 
 
 const pool = new Pool({
@@ -24,6 +23,8 @@ const sql = `
       doc_foto TEXT,      
       selfie_foto TEXT,   
       qr_secret TEXT,     
+      vetado BOOLEAN DEFAULT FALSE, 
+      motivo_veto TEXT, -- ✍️ NUEVA COLUMNA PARA EL REGISTRO DE INCIDENCIAS
       creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -44,10 +45,9 @@ const sql = `
 
 async function rebuild() {
   try {
-    console.log("⏳ Limpiando y creando tablas en Railway...");
-    // Ejecutamos la consulta
+    console.log("⏳ Reconstruyendo base de datos con soporte para Bitácora de Veto...");
     await pool.query(sql);
-    console.log("✅ Base de datos restaurada con éxito (Tablas: usuarios, entradas, barra).");
+    console.log("✅ Base de datos restaurada. Columna 'motivo_veto' añadida con éxito.");
     process.exit(0);
   } catch (e) {
     console.error("❌ Error restaurando base de datos:", e);

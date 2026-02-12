@@ -5,19 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Admin · Paröle</title>
   <style>
-    body { background: #000; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; justify-content: center; }
+    :root {
+      --primary: #a855f7;
+      --danger: #ef4444;
+      --bg: #000;
+      --card-bg: #1a1a1a;
+    }
+
+    body { 
+      background: var(--bg); 
+      color: white; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0; 
+      display: flex; 
+      justify-content: center; 
+    }
+
     .container { width: 100%; max-width: 800px; padding: 40px 20px; }
     
-    h1 { font-size: 28px; letter-spacing: 1px; margin-bottom: 30px; text-align: center; }
-    h2 { font-size: 18px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+    h1 { font-size: 28px; letter-spacing: 1px; margin-bottom: 30px; text-align: center; color: white; }
+    h2 { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
 
-    .card { background: #1a1a1a; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 1px solid #333; }
+    .card { 
+      background: var(--card-bg); 
+      padding: 25px; 
+      border-radius: 20px; 
+      margin-bottom: 25px; 
+      border: 1px solid #333; 
+    }
     
     .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
-    .stat-box { background: #222; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #222; transition: 0.3s; }
-    .stat-box:hover { border-color: #a855f7; }
-    .stat-num { font-size: 32px; font-weight: bold; color: #a855f7; display: block; margin-bottom: 5px; }
-    .stat-label { font-size: 12px; color: #aaa; text-transform: uppercase; }
+    .stat-box { background: #222; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #222; }
+    .stat-num { font-size: 32px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
+    .stat-label { font-size: 11px; color: #aaa; text-transform: uppercase; }
 
     ul { list-style: none; padding: 0; margin: 0; }
     li { 
@@ -28,16 +48,39 @@
       justify-content: space-between; 
       align-items: center; 
       border-radius: 12px;
-      border-left: 4px solid #a855f7;
+      border-left: 4px solid var(--primary);
     }
-    .rank { color: #a855f7; font-weight: bold; margin-right: 15px; }
-    .puntos { background: rgba(168, 85, 247, 0.1); color: #a855f7; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
 
-    .btn-back { display: block; text-align: center; margin-top: 30px; color: #555; text-decoration: none; font-size: 14px; }
-    .btn-back:hover { color: #fff; }
+    .rank { color: var(--primary); font-weight: bold; margin-right: 15px; }
+    .puntos { background: rgba(168, 85, 247, 0.1); color: var(--primary); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; }
+
+    .li-blacklist { border-left-color: var(--danger); }
+    .btn-perdonar {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-perdonar:hover { background: #dc2626; transform: scale(1.05); }
+
+    .motivo-tag {
+      display: block;
+      color: #ef4444;
+      font-size: 12px;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .btn-back { display: block; text-align: center; margin-top: 30px; color: #555; text-decoration: none; font-size: 14px; cursor: pointer; }
   </style>
 </head>
 <body>
+
   <div class="container">
     <h1>📈 PARÖLE INSIGHTS</h1>
     
@@ -46,15 +89,15 @@
       <div class="stat-grid">
         <div class="stat-box">
           <span class="stat-num" id="total-users">0</span>
-          <span class="stat-label">Usuarios Clientes</span>
+          <span class="stat-label">Clientes</span>
         </div>
         <div class="stat-box">
           <span class="stat-num" id="total-entradas">0</span>
-          <span class="stat-label">Entradas Totales</span>
+          <span class="stat-label">Entradas</span>
         </div>
         <div class="stat-box">
           <span class="stat-num" id="total-consumos">0</span>
-          <span class="stat-label">Consumos Barra</span>
+          <span class="stat-label">Consumos</span>
         </div>
       </div>
     </div>
@@ -62,50 +105,20 @@
     <div class="card">
       <h2>🏆 Top 5 Ranking Clientes</h2>
       <ul id="top-list">
-        <li>Cargando datos...</li>
+        <li>Cargando ranking...</li>
       </ul>
     </div>
 
-    <a href="/login.html" class="btn-back">Cerrar Sesión de Administrador</a>
+    <div class="card" style="border-color: rgba(239, 68, 68, 0.3);">
+      <h2 style="color: var(--danger);">🚫 Lista Negra (Bitácora de Vetos)</h2>
+      <ul id="blacklist-list">
+        <li>No hay usuarios vetados.</li>
+      </ul>
+    </div>
+
+    <a onclick="logout()" class="btn-back">Cerrar Sesión de Administrador</a>
   </div>
 
-  <script>
-    // Seguridad básica: Verificar rol en el cliente
-    const userData = JSON.parse(localStorage.getItem("user"));
-    if (!userData || userData.rol !== 'admin') {
-      window.location.href = "/login.html";
-    }
-
-    async function cargarStats() {
-      try {
-        const res = await fetch('/api/admin/stats');
-        const data = await res.json();
-
-        document.getElementById('total-users').innerText = data.usuarios;
-        document.getElementById('total-entradas').innerText = data.entradas;
-        document.getElementById('total-consumos').innerText = data.consumos;
-
-        const list = document.getElementById('top-list');
-        list.innerHTML = '';
-        
-        data.top.forEach((cliente, index) => {
-          list.innerHTML += `
-            <li>
-              <div>
-                <span class="rank">#${index + 1}</span>
-                <span>${cliente.nombre}</span>
-              </div>
-              <span class="puntos">${cliente.puntos} PTS</span>
-            </li>`;
-        });
-      } catch (err) {
-        console.error("Error al cargar estadísticas:", err);
-      }
-    }
-
-    cargarStats();
-    // Actualizar cada 30 segundos para no saturar Railway
-    setInterval(cargarStats, 30000);
-  </script>
+  <script src="/js/admin.js"></script>
 </body>
 </html>

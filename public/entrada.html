@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <title>Control de Entrada - Seguridad</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <script src="https://unpkg.com/html5-qrcode"></script>
-
   <style>
     body {
       margin: 0;
@@ -31,7 +29,6 @@
     h1 { margin: 0; font-size: 24px; color: #fff; }
     .sub { font-size: 14px; color: #888; margin-bottom: 20px; }
 
-    /* Contenedor del scanner */
     #reader {
       width: 100%;
       border-radius: 16px;
@@ -40,7 +37,6 @@
       background: #111;
     }
 
-    /* Tarjeta de Resultado */
     #resultado-card {
       display: none;
       background: #1e1e1e;
@@ -53,13 +49,12 @@
       z-index: 10;
     }
 
-    /* Foto del Usuario */
     .foto-usuario {
       width: 150px;
       height: 150px;
       border-radius: 50%;
       object-fit: cover;
-      border: 4px solid #8a5de8; /* Color de la marca */
+      border: 4px solid #8a5de8;
       margin-bottom: 15px;
       background: #000;
     }
@@ -71,27 +66,33 @@
       font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
     }
 
-    /* Estados de acceso */
-    .estado { font-size: 22px; font-weight: bold; margin-bottom: 10px; padding: 10px; border-radius: 8px; }
+    .estado { font-size: 20px; font-weight: bold; margin-bottom: 15px; padding: 12px; border-radius: 8px; }
     .valido { color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; }
     .invalido { color: #f87171; background: rgba(248, 113, 113, 0.1); border: 1px solid #f87171; }
 
-    /* Botón */
-    button {
+    .acciones {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
       margin-top: 25px;
-      padding: 15px;
-      width: 100%;
+    }
+
+    .btn {
+      padding: 16px;
       border-radius: 12px;
       border: none;
-      background: #8a5de8;
       color: white;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
       transition: transform 0.1s;
     }
-    button:active { transform: scale(0.98); }
 
+    .btn-permitir { background: #22c55e; }
+    .btn-vetar { background: #ef4444; }
+    .btn-reintentar { background: #555; }
+    
+    .btn:active { transform: scale(0.96); }
   </style>
 </head>
 
@@ -111,20 +112,27 @@
     <div class="nombre" id="nombre-txt">---</div>
     <span class="rol" id="rol-txt">---</span>
 
-    <button onclick="reiniciar()">Escanear Siguiente</button>
+    <div class="acciones">
+        <button id="btn-ok" class="btn btn-permitir" onclick="reiniciar()" style="display:none">✅ PERMITIR ACCESO</button>
+        <button id="btn-veto" class="btn btn-vetar" onclick="vetarUsuario()" style="display:none">🚫 VETAR ACCESO</button>
+        <button id="btn-retry" class="btn btn-reintentar" onclick="reiniciar()" style="display:none">🔄 ESCANEAR OTRA VEZ</button>
+    </div>
   </div>
 </div>
 
 <script>
-  // Usamos el ID del div "reader"
   let html5QrCode;
+  let currentUserId = null;
   const resultadoCard = document.getElementById("resultado-card");
   const readerDiv = document.getElementById("reader");
-  
   const estadoMsg = document.getElementById("estado-msg");
   const nombreTxt = document.getElementById("nombre-txt");
   const rolTxt = document.getElementById("rol-txt");
   const fotoImg = document.getElementById("foto-img");
+  
+  const btnOk = document.getElementById("btn-ok");
+  const btnVeto = document.getElementById("btn-veto");
+  const btnRetry = document.getElementById("btn-retry");
 
   let isScanning = true;
 
@@ -132,8 +140,8 @@
     resultadoCard.style.display = "none";
     readerDiv.style.display = "block";
     isScanning = true;
+    currentUserId = null;
 
-    // Reiniciamos la instancia si ya existe para evitar errores
     if (!html5QrCode) {
       html5QrCode = new Html5Qrcode("reader");
     }
@@ -144,60 +152,90 @@
       onScanSuccess,
       onScanFailure
     ).catch(err => {
-      console.error("Error al iniciar cámara", err);
-      alert("No se pudo acceder a la cámara. Revisa los permisos.");
+      alert("Error cámara: Revisa permisos.");
     });
   }
 
-  async function onScanSuccess(decodedText, decodedResult) {
+  async function onScanSuccess(decodedText) {
     if (!isScanning) return; 
     isScanning = false;
 
-    // Detenemos el scanner para procesar
     html5QrCode.stop().then(async () => {
         readerDiv.style.display = "none";
         resultadoCard.style.display = "block";
         
-        estadoMsg.innerText = "⏳ Verificando...";
-        estadoMsg.className = "estado";
-        fotoImg.src = "/assets/logo.jpeg"; 
+        btnOk.style.display = "none";
+        btnVeto.style.display = "none";
+        btnRetry.style.display = "none";
 
         try {
-            // Enviamos el código (ID|TOKEN) al servidor
             const res = await fetch(`/api/entrada?codigo=${encodeURIComponent(decodedText)}`);
             const data = await res.json();
+            
+            currentUserId = data.id;
 
             if (data.ok) {
-                // ✅ ÉXITO
                 estadoMsg.innerText = "✅ ACCESO PERMITIDO";
                 estadoMsg.className = "estado valido";
                 nombreTxt.innerText = data.nombre;
-                rolTxt.innerText = data.tipo || "CLIENTE";
+                rolTxt.innerText = data.tipo;
+                fotoImg.src = data.foto || "/assets/logo.jpeg";
                 
-                // Si la foto viene de la DB, la mostramos. Si no, placeholder.
-                fotoImg.src = data.foto || "https://via.placeholder.com/150?text=Sin+Foto";
+                btnOk.style.display = "block";
+                btnVeto.style.display = "block";
             } else {
-                // ❌ ERROR
-                mostrarError(data.msg || "QR INVÁLIDO");
+                mostrarError(data.msg || "ERROR");
+                btnRetry.style.display = "block";
+                if(currentUserId) btnVeto.style.display = "block";
             }
         } catch (error) {
-            console.error(error);
             mostrarError("ERROR DE CONEXIÓN");
+            btnRetry.style.display = "block";
         }
-    }).catch(err => console.error("Error al detener scanner", err));
+    });
+  }
+
+  // --- FUNCIÓN ACTUALIZADA CON MOTIVO ---
+  async function vetarUsuario() {
+    if (!currentUserId) return;
+    
+    // 1. Preguntar el motivo
+    const motivo = prompt("✍️ Motivo del veto (Ej: Pelea, Alcohol, Robo):");
+    
+    // Si el guardia cancela el prompt, detenemos la acción
+    if (motivo === null) return;
+
+    // 2. Confirmación final
+    if (confirm(`⚠️ ¿Confirmar VETO permanente por "${motivo || 'Sin especificar'}"?`)) {
+        try {
+            const res = await fetch('/api/seguridad/vetar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id: currentUserId,
+                    motivo: motivo || "Sin motivo especificado" 
+                })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                alert("🚫 Usuario vetado y registrado en bitácora.");
+                reiniciar();
+            }
+        } catch (e) {
+            alert("Error al procesar el veto.");
+        }
+    }
   }
 
   function mostrarError(mensaje) {
-      estadoMsg.innerText = "⛔ " + mensaje;
-      estadoMsg.className = "estado invalido";
-      nombreTxt.innerText = "Desconocido";
-      rolTxt.innerText = "---";
-      fotoImg.src = "https://via.placeholder.com/150/ff0000/ffffff?text=X";
+    estadoMsg.innerText = "⛔ " + mensaje;
+    estadoMsg.className = "estado invalido";
+    nombreTxt.innerText = "ACCESO DENEGADO";
+    rolTxt.innerText = "BLOQUEADO";
+    fotoImg.src = "https://via.placeholder.com/150/ff0000/ffffff?text=X";
   }
 
-  function onScanFailure(error) {
-    // Normal durante el enfoque
-  }
+  function onScanFailure() {}
 
   function reiniciar() {
     iniciarCamara();
