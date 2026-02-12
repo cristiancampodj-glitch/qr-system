@@ -24,7 +24,8 @@
       display: flex; 
       flex-direction: column;
       height: 100vh;
-      height: -webkit-fill-available;
+      /* Fix para navegadores móviles */
+      height: 100dvh; 
       overflow: hidden;
     }
 
@@ -32,7 +33,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 25px;
+      padding: 15px 25px;
       flex-shrink: 0;
     }
 
@@ -65,14 +66,11 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      /* Cambiado de center a flex-start para controlar el margen superior */
-      justify-content: flex-start; 
-      padding: 20px 10px;
+      /* Justificar al final para que todo baje hacia la botonera */
+      justify-content: flex-end; 
+      padding: 10px 10px 30px 10px; 
       overflow-y: auto;
     }
-
-    /* Espaciador para bajar el contenido un poco desde el header */
-    .top-spacer { height: 20px; flex-shrink: 0; }
 
     .user-avatar {
       width: 85px;
@@ -81,12 +79,12 @@
       object-fit: cover;
       border: 3px solid var(--primary);
       box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-      margin-bottom: 15px;
+      margin-bottom: 12px;
     }
 
-    .brand { font-size: 22px; font-weight: 800; letter-spacing: 4px; margin-bottom: 10px; }
+    .brand { font-size: 22px; font-weight: 800; letter-spacing: 4px; margin-bottom: 8px; }
     .user-name { font-size: 24px; font-weight: 700; margin-bottom: 2px; text-transform: uppercase; text-align: center; }
-    .user-type { font-size: 13px; color: #888; margin-bottom: 35px; }
+    .user-type { font-size: 13px; color: #888; margin-bottom: 25px; }
 
     .qr-container {
       background: white;
@@ -102,13 +100,15 @@
       display: block;
     }
 
-    /* Navegación Inferior Pegada Abajo */
+    /* Navegación Inferior Totalmente Pegada */
     footer {
-      background: #1a1a1a; /* Color gris oscuro de tu diseño */
-      padding: 20px 15px calc(25px + env(safe-area-inset-bottom));
-      border-top-left-radius: 30px; /* Curva superior para verse como app */
+      background: #1a1a1a;
+      /* Eliminamos el margen superior para que se una visualmente al contenido */
+      padding: 15px 15px calc(20px + env(safe-area-inset-bottom));
+      border-top-left-radius: 30px;
       border-top-right-radius: 30px;
       flex-shrink: 0;
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
     }
 
     .nav-grid {
@@ -121,10 +121,10 @@
     }
 
     .nav-item {
-      background: #333; /* Fondo de botones de tu diseño */
+      background: #333;
       border: none;
       color: white;
-      padding: 18px 2px;
+      padding: 16px 2px;
       border-radius: 15px;
       font-size: 10px;
       font-weight: 700;
@@ -136,8 +136,11 @@
     .nav-item.active { 
       background: #444;
       border: 1px solid var(--primary);
+      color: var(--primary);
     }
 
+    /* Oculto pero necesario */
+    #timer-bar { display: none; }
   </style>
 </head>
 <body>
@@ -153,20 +156,19 @@
   </header>
 
   <main>
-    <div class="top-spacer"></div>
     <img id="user-photo" src="/assets/logo.jpeg" class="user-avatar" alt="Avatar">
     
     <div class="brand">PARÖLE</div>
     <div class="user-name" id="nombre">USUARIO</div>
     <div class="user-type" id="tipo">CLIENTE</div>
 
-    <p style="color: #888; font-size: 11px; margin-bottom: 15px; letter-spacing: 1px; margin-top: 20px;">MI QR DE ACCESO</p>
+    <p style="color: #888; font-size: 11px; margin-bottom: 12px; letter-spacing: 1px; margin-top: 15px;">MI QR DE ACCESO</p>
 
     <div class="qr-container">
       <img id="qr-img" src="" alt="Cargando...">
     </div>
 
-    <div id="timer-bar" style="display:none"></div>
+    <div id="timer-bar"></div>
   </main>
 
   <footer>
