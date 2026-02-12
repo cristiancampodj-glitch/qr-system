@@ -12,10 +12,8 @@
       --success: #22c55e;
       --danger: #ef4444;
       --bg: #0d0d0d;
-      --card-bg: #151515;
     }
 
-    /* Ajuste para asegurar que todo quepa y se vea la navegación */
     * { box-sizing: border-box; }
 
     body { 
@@ -25,17 +23,17 @@
       color: white; 
       display: flex; 
       flex-direction: column;
-      height: 100vh; /* Altura total de la pantalla */
+      height: 100vh;
       height: -webkit-fill-available;
-      overflow: hidden; /* Evita scroll extraño */
+      overflow: hidden;
     }
 
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 25px;
-      flex-shrink: 0; /* No se encoge */
+      padding: 20px 25px;
+      flex-shrink: 0;
     }
 
     .btn-power {
@@ -63,14 +61,18 @@
     }
 
     main {
-      flex: 1; /* Ocupa el espacio restante */
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center; /* Centra el contenido verticalmente */
-      padding: 10px;
-      overflow-y: auto; /* Por si el contenido es muy grande en móviles pequeños */
+      /* Cambiado de center a flex-start para controlar el margen superior */
+      justify-content: flex-start; 
+      padding: 20px 10px;
+      overflow-y: auto;
     }
+
+    /* Espaciador para bajar el contenido un poco desde el header */
+    .top-spacer { height: 20px; flex-shrink: 0; }
 
     .user-avatar {
       width: 85px;
@@ -84,7 +86,7 @@
 
     .brand { font-size: 22px; font-weight: 800; letter-spacing: 4px; margin-bottom: 10px; }
     .user-name { font-size: 24px; font-weight: 700; margin-bottom: 2px; text-transform: uppercase; text-align: center; }
-    .user-type { font-size: 13px; color: #888; margin-bottom: 25px; }
+    .user-type { font-size: 13px; color: #888; margin-bottom: 35px; }
 
     .qr-container {
       background: white;
@@ -95,41 +97,36 @@
     }
 
     .qr-container img {
-      width: 180px;
-      height: 180px;
+      width: 190px;
+      height: 190px;
       display: block;
     }
 
-    /* Ocultamos el contador de 15 segundos visualmente */
-    .timer-track, .seconds-text {
-      display: none !important;
-    }
-
-    /* Navegación Inferior Arreglada */
+    /* Navegación Inferior Pegada Abajo */
     footer {
-      background: rgba(30, 30, 30, 0.9);
-      backdrop-filter: blur(10px);
-      padding: 15px 15px calc(15px + env(safe-area-inset-bottom)); /* Soporte para notch de iPhone */
-      border-top: 1px solid rgba(255,255,255,0.1);
+      background: #1a1a1a; /* Color gris oscuro de tu diseño */
+      padding: 20px 15px calc(25px + env(safe-area-inset-bottom));
+      border-top-left-radius: 30px; /* Curva superior para verse como app */
+      border-top-right-radius: 30px;
       flex-shrink: 0;
     }
 
     .nav-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
+      gap: 10px;
       width: 100%;
-      max-width: 400px;
+      max-width: 450px;
       margin: 0 auto;
     }
 
     .nav-item {
-      background: rgba(255, 255, 255, 0.08);
+      background: #333; /* Fondo de botones de tu diseño */
       border: none;
       color: white;
-      padding: 12px 2px;
-      border-radius: 12px;
-      font-size: 9px;
+      padding: 18px 2px;
+      border-radius: 15px;
+      font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
       cursor: pointer;
@@ -137,9 +134,8 @@
     }
 
     .nav-item.active { 
-      background: rgba(168, 85, 247, 0.2); 
-      color: var(--primary);
-      border: 1px solid rgba(168, 85, 247, 0.3);
+      background: #444;
+      border: 1px solid var(--primary);
     }
 
   </style>
@@ -157,13 +153,14 @@
   </header>
 
   <main>
+    <div class="top-spacer"></div>
     <img id="user-photo" src="/assets/logo.jpeg" class="user-avatar" alt="Avatar">
     
     <div class="brand">PARÖLE</div>
     <div class="user-name" id="nombre">USUARIO</div>
     <div class="user-type" id="tipo">CLIENTE</div>
 
-    <p style="color: #666; font-size: 11px; margin-bottom: 12px; letter-spacing: 1px;">MI QR DE ACCESO</p>
+    <p style="color: #888; font-size: 11px; margin-bottom: 15px; letter-spacing: 1px; margin-top: 20px;">MI QR DE ACCESO</p>
 
     <div class="qr-container">
       <img id="qr-img" src="" alt="Cargando...">
